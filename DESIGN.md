@@ -43,8 +43,8 @@ One radius: 6px on interactive and framed elements, 4px on tag chips. Hairline b
 
 ## Motion
 
-One authored moment: the hero object orbits (40 s period, slight bob), the ten surfaces reveal in sequence 0.6 s apart on first paint, then pulse gently. Pointer parallax on fine pointers only. Everything else is a hover or press state. `prefers-reduced-motion`: static 3/4 view, all surfaces shown, no orbit, video does not autoplay.
+One authored moment: the hero object orbits (40 s period, slight bob), the ten surfaces reveal in sequence 0.6 s apart on first paint, then pulse gently. Pointer parallax on fine pointers until the first drag; drag to orbit on all pointers with a short, capped inertia; hovering a surface brightens it and its tag. Everything else is a hover or press state. `prefers-reduced-motion`: static 3/4 view, all surfaces shown, no orbit, video does not autoplay.
 
 ## Fallbacks
 
-WebGL or CDN unavailable: `assets/hero-fallback.jpg` in the same stage box; copy and action unchanged. The page must read completely with the canvas gone.
+WebGL or CDN unavailable: `assets/hero-fallback.svg` in the same stage box; copy and action unchanged. The page must read completely with the canvas gone.

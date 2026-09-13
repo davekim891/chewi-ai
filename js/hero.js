@@ -38,6 +38,9 @@ let entries = [], lineMats = [];
 let size = { w: 1, h: 1 };
 let last = 0, yaw = 0, pitch = 0, yawT = 0, pitchT = 0;
 let visible = true, lowFpsSince = 0, dprDropped = false, lostTimer = 0;
+let dragging = false, interacted = false, dragYaw = 0, dragPitch = 0, dragVelYaw = 0, dragVelPitch = 0;
+let lastPX = 0, lastPY = 0, lastPT = 0, hovered = null, raycaster, ndc;
+const hint = root.querySelector('.hero-hint');
 let TARGET, vTmp, nTmp, dTmp;
 
 function setMode(m) {
@@ -181,14 +184,53 @@ function init(three, LineSegments2, LineMaterial, LineSegmentsGeometry) {
   document.addEventListener('visibilitychange', sync);
   REDUCED_MQ.addEventListener('change', sync);
 
+  raycaster = new THREE.Raycaster();
+  ndc = new THREE.Vector2();
+
+  // Parallax (fine pointers, until the first drag), drag to orbit (all pointers), hover to highlight.
   if (!COARSE_MQ.matches) {
     root.addEventListener('pointermove', (ev) => {
+      if (dragging || interacted) return;
       const r = stage.getBoundingClientRect();
       yawT = clamp((ev.clientX - (r.left + r.width / 2)) / r.width, -0.5, 0.5) * 0.21;
       pitchT = clamp((ev.clientY - (r.top + r.height / 2)) / r.height, -0.5, 0.5) * -0.10;
     });
-    root.addEventListener('pointerleave', () => { yawT = 0; pitchT = 0; });
+    root.addEventListener('pointerleave', () => { yawT = 0; pitchT = 0; setHover(null); });
   }
+  stage.addEventListener('pointerdown', (ev) => {
+    if (ev.pointerType === 'mouse' && ev.button !== 0) return;
+    dragging = true; interacted = true; yawT = 0; pitchT = 0;
+    dragVelYaw = 0; dragVelPitch = 0;
+    lastPX = ev.clientX; lastPY = ev.clientY; lastPT = performance.now();
+    stage.classList.add('is-dragging');
+    if (hint) hint.classList.add('is-done');
+    try { stage.setPointerCapture(ev.pointerId); } catch {}
+  });
+  stage.addEventListener('pointermove', (ev) => {
+    if (dragging) {
+      const now = performance.now();
+      const dtp = Math.max(1, now - lastPT) / 1000;
+      const dYaw = (ev.clientX - lastPX) * 0.005, dPitch = -(ev.clientY - lastPY) * 0.003;
+      dragYaw += dYaw;
+      dragPitch = clamp(dragPitch + dPitch, -0.25, 0.55);
+      // smoothed release velocity, capped so a fast flick spins at most a quarter turn
+      dragVelYaw = clamp(dragVelYaw * 0.5 + (dYaw / dtp) * 0.5, -1.6, 1.6);
+      dragVelPitch = clamp(dragVelPitch * 0.5 + (dPitch / dtp) * 0.5, -1, 1);
+      lastPX = ev.clientX; lastPY = ev.clientY; lastPT = now;
+      if (!state.running) renderOnce();
+      return;
+    }
+    if (!COARSE_MQ.matches) hoverAt(ev);
+  });
+  const endDrag = (ev) => {
+    if (!dragging) return;
+    dragging = false;
+    stage.classList.remove('is-dragging');
+    try { stage.releasePointerCapture(ev.pointerId); } catch {}
+  };
+  stage.addEventListener('pointerup', endDrag);
+  stage.addEventListener('pointercancel', endDrag);
+  stage.addEventListener('lostpointercapture', endDrag);
 
   resize();
   state.ready = true;
@@ -223,12 +265,19 @@ function update(dt) {
   yaw += (yawT - yaw) * k;
   pitch += (pitchT - pitch) * k;
 
+  if (!dragging) {
+    dragYaw += dragVelYaw * dt;
+    dragPitch = clamp(dragPitch + dragVelPitch * dt, -0.25, 0.55);
+    const damp = Math.exp(-4 * dt);
+    dragVelYaw *= damp; dragVelPitch *= damp;
+  }
+
   crank.rotation.z = -0.25 * t;
   pedalL.rotation.z = 0.25 * t;
   pedalR.rotation.z = 0.25 * t;
 
-  const az = AZ0 + (2 * Math.PI * t) / ORBIT_PERIOD + yaw;
-  const el = EL0 + 0.08 * Math.sin((2 * Math.PI * t) / BOB_PERIOD) + pitch;
+  const az = AZ0 + (2 * Math.PI * t) / ORBIT_PERIOD + yaw + dragYaw;
+  const el = clamp(EL0 + 0.08 * Math.sin((2 * Math.PI * t) / BOB_PERIOD) + pitch + dragPitch, 0.06, 1.3);
   camera.position.set(
     TARGET.x + RADIUS * Math.cos(el) * Math.sin(az),
     TARGET.y + RADIUS * Math.sin(el),
@@ -245,11 +294,29 @@ function update(dt) {
     const pulse = s >= 1 ? 0.12 * Math.sin(2 * t + e.phase) : 0;
     e.ease = ease;
     e.mesh.visible = s > 0;
-    e.mesh.material.opacity = ease * (PATCH_BASE + pulse);
-    e.outline.material.opacity = ease * 0.85;
+    const hot = hovered === e ? 0.3 : 0;
+    e.mesh.material.opacity = ease * (PATCH_BASE + pulse) + hot;
+    e.outline.material.opacity = ease * 0.85 + hot;
     e.mesh.scale.setScalar(0.6 + 0.4 * ease);
   }
   state.revealed = revealed;
+}
+
+function hoverAt(ev) {
+  const r = stage.getBoundingClientRect();
+  ndc.set(((ev.clientX - r.left) / r.width) * 2 - 1, -((ev.clientY - r.top) / r.height) * 2 + 1);
+  raycaster.setFromCamera(ndc, camera);
+  const meshes = entries.filter((e) => e.mesh.visible).map((e) => e.mesh);
+  const hit = raycaster.intersectObjects(meshes, false)[0];
+  setHover(hit ? entries.find((e) => e.mesh === hit.object) : null);
+}
+function setHover(e) {
+  if (e === hovered) return;
+  if (hovered) hovered.tag.classList.remove('is-hot');
+  hovered = e;
+  if (hovered) hovered.tag.classList.add('is-hot');
+  stage.classList.toggle('is-hover', !!hovered);
+  if (!state.running && renderer && state.mode !== 'fallback') renderOnce();
 }
 
 // Push overlapping tags apart along the axis of least penetration. Ten tags, a few passes: cheap.
@@ -373,7 +440,7 @@ function sync() {
 window.__chewiHero = {
   status() {
     if (renderer && state.mode !== 'fallback') renderOnce();
-    return { ...state, labels: state.labels.map((l) => ({ ...l })), canvas: { w: size.w, h: size.h } };
+    return { ...state, labels: state.labels.map((l) => ({ ...l })), canvas: { w: size.w, h: size.h }, interacted, dragYaw, dragPitch, hovered: hovered ? hovered.p.id : null };
   },
   renderOnce() { if (renderer && state.mode !== 'fallback') renderOnce(); },
   setTime(s) { state.t = s; yaw = pitch = yawT = pitchT = 0; if (renderer && state.mode !== 'fallback') renderOnce(); },
