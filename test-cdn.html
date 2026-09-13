@@ -1,0 +1,110 @@
+<!doctype html>
+<!--
+  Chewi AI, coming-soon page. Direction contract:
+  THESIS: the proof is the object. A live bicycle with its ten compiled action surfaces labelled is on
+    screen before any sentence is read. Refuses the AI-image hero and the gradient-blob placeholder.
+  OWN-WORLD: near-black ground, thin cool-white wire, four category colours used as data (green contact,
+    cyan grip, violet support, amber rotation and hinge), mono tags that read as compiled ids, Space
+    Grotesk headings, one blue accent reserved for the wordmark and the single action.
+  STORY: "This company makes 3D objects legible to AI. The labels are the product. I will email GO."
+  FIRST VIEWPORT: wordmark alone top-left; 5/12 copy on the left (Coming soon, headline, one sentence,
+    one action); 7/12 live canvas on the right. Mobile stacks copy above the canvas.
+  FORM: brief-pinned (GO's mockup plus Dave's three.js decision); no seed roll was run.
+-->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Chewi AI</title>
+  <meta name="description" content="Chewi AI is the intelligence layer between AI and the 3D world: compiled semantic structure on 3D assets so models can understand, reason about and interact with them. Coming soon.">
+  <meta name="theme-color" content="#0b0d10">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <meta property="og:title" content="Chewi AI">
+  <meta property="og:description" content="The intelligence layer between AI and the 3D world. Coming soon.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://chewi.ai/">
+  <meta property="og:image" content="https://chewi.ai/assets/og.jpg">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="preload" href="fonts/space-grotesk-latin-700.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="fonts/space-grotesk-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.0.0-does-not-exist/build/three.module.js">
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.0.0-does-not-exist/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.0.0-does-not-exist/examples/jsm/"
+    }
+  }
+  </script>
+  <link rel="stylesheet" href="css/site.css">
+</head>
+<body>
+  <header class="top">
+    <a class="wordmark" href="/" aria-label="Chewi AI">CHEWI <span>AI</span></a>
+  </header>
+
+  <main>
+    <section class="hero" data-hero data-mode="loading">
+      <div class="hero-copy">
+        <p class="eyebrow">Coming soon</p>
+        <h1>The intelligence layer between AI and the 3D&nbsp;world.</h1>
+        <p class="lede">Chewi compiles semantic structure onto 3D assets so AI models can understand, reason about and interact with them.</p>
+        <a class="cta" href="mailto:goburton@playhybrid.com?subject=Chewi%20AI">Curious? Get in touch
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
+        </a>
+      </div>
+
+      <div class="hero-stage">
+        <canvas aria-label="A wireframe bicycle rotating slowly, with its compiled action surfaces highlighted and labelled: two grips, the saddle, two pedals, both tire contact bands, the crank, the front hub and the headset."></canvas>
+        <svg class="hero-leaders" aria-hidden="true"></svg>
+        <div class="hero-tags" aria-hidden="true"></div>
+        <picture class="hero-fallback" hidden>
+          <img src="assets/hero-fallback.jpg" width="1200" height="1000" alt="A wireframe bicycle with its compiled action surfaces labelled: grips, saddle, pedals, tire contact, crank, hub and headset.">
+        </picture>
+      </div>
+    </section>
+
+    <section class="demo">
+      <h2>What Chewi sees</h2>
+      <div class="demo-frame">
+        <video muted loop playsinline autoplay preload="metadata" poster="assets/contact-demo-poster.jpg" aria-label="Simulation of a rider on a bicycle where the compiled contact surfaces keep the feet, seat and hands attached through the motion.">
+          <source src="assets/contact-demo.mp4" type="video/mp4">
+        </video>
+      </div>
+      <p class="caption">A compiled contact surface driving a rider simulation. Real output, not a render.</p>
+    </section>
+
+    <section class="layers">
+      <h2>From geometry to machine-understandable structure</h2>
+      <p class="intro">Chewi enriches assets with structured information about components, relationships, articulation, physical properties and possible interactions, so AI models can apply what they already know about the world directly to 3D data.</p>
+      <ul class="layer-grid">
+        <li data-tint="grip"><h3>Components &amp; relationships</h3><p>What the elements are and how they relate to each other.</p></li>
+        <li><h3>Articulation &amp; structure</h3><p>Joints, hierarchies, axes and movable parts.</p></li>
+        <li><h3>Physical &amp; functional properties</h3><p>Structured properties for reasoning about behaviour.</p></li>
+        <li data-tint="contact"><h3>Interaction &amp; affordances</h3><p>How objects and their parts can be manipulated.</p></li>
+        <li><h3>Machine-readable semantics</h3><p>Structured information that travels with the asset.</p></li>
+      </ul>
+      <p class="built-for">Built for world models, robotics, industrial simulation and spatial computing.</p>
+    </section>
+  </main>
+
+  <footer class="close">
+    <h2>We're looking for design partners.</h2>
+    <p class="lede">We're speaking with teams across spatial AI, robotics, simulation and world models about where machine-readable 3D correspondence creates the most value. If your team works with large-scale 3D data, we'd like to compare notes.</p>
+    <a class="cta" href="mailto:goburton@playhybrid.com?subject=Chewi%20AI">Curious? Get in touch
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
+    </a>
+    <p class="credit">A PlayHybrid product</p>
+  </footer>
+
+  <script>
+    // Reduced motion: no autoplaying video, show the native controls instead.
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      const v = document.querySelector('.demo video');
+      v.removeAttribute('autoplay'); v.autoplay = false; v.pause(); v.controls = true;
+    }
+  </script>
+  <script type="module" src="js/hero.js"></script>
+</body>
+</html>
