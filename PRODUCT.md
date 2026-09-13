@@ -44,6 +44,9 @@ The page is a pre-launch placeholder for chewi.ai (domain not yet purchased as o
 - Demo video "7 - more detailed contact.mp4" (from the team's Drive, approved for use): a compiled contact-surface rider simulation. On the page as `assets/contact-demo.mp4`.
 - Internal notes on the bike action-surface package (grips, seat, pedals, tire bands) and the rider package.
 - An internal market brief exists for background only; none of its numbers go on this page.
+- PlayHybrid discussion note "Two observations on the next stages of generated 3D assets" (2026-09-10, marked as observations, not an adopted specification): source of the "Two standards" section (production editability vs shared-world interaction, the editing-contract items, the shared-world requirements).
+- PlayHybrid "Strategic significance" note: source of the compounding-library line ("more labeled assets, better semantic prediction, less human correction").
+- Sean's validation post (Slack, V5.1, 2026-08-27): source of every number in the measurements table under the demo video. Needs GO's read before launch, as does the "Two standards" section.
 - Absent: logo file, customer names, testimonials, screenshots of a product UI. Do not fabricate any of these.
 
 ## Product Principles

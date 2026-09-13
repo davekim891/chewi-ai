@@ -67,7 +67,7 @@ p { margin: 0; }
   color: var(--accent); margin-bottom: 22px;
 }
 .hero h1 { font-size: clamp(2.1rem, 3.6vw, 4.6rem); }
-.lede { margin-top: 22px; font-size: clamp(1.0rem, 1.15vw, 1.3rem); color: var(--fg-muted); max-width: 34rem; }
+.lede { margin-top: 22px; font-size: clamp(1.0625rem, 1.15vw, 1.3rem); color: var(--fg-muted); max-width: 34rem; }
 
 .cta {
   display: inline-flex; align-items: center; gap: 10px;
@@ -85,7 +85,7 @@ p { margin: 0; }
   position: relative;
   width: 100%;
   aspect-ratio: 6 / 5;
-  max-height: calc(100dvh - var(--top) - 40px);
+  max-height: calc(100dvh - var(--top) - 56px);
   align-self: center;
 }
 .hero-stage { cursor: grab; touch-action: pan-y; user-select: none; -webkit-user-select: none; }

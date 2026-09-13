@@ -48,3 +48,18 @@ One authored moment: the hero object orbits (40 s period, slight bob), the ten s
 ## Fallbacks
 
 WebGL or CDN unavailable: `assets/hero-fallback.svg` in the same stage box; copy and action unchanged. The page must read completely with the canvas gone.
+
+## Direction contract (recorded before the first build)
+
+```
+  Chewi AI, coming-soon page. Direction contract:
+  THESIS: the proof is the object. A live bicycle with its ten compiled action surfaces labelled is on
+    screen before any sentence is read. Refuses the AI-image hero and the gradient-blob placeholder.
+  OWN-WORLD: near-black ground, thin cool-white wire, four category colours used as data (green contact,
+    cyan grip, violet support, amber rotation and hinge), mono tags that read as compiled ids, Space
+    Grotesk headings, one blue accent reserved for the wordmark and the single action.
+  STORY: "This company makes 3D objects legible to AI. The labels are the product. I will email GO."
+  FIRST VIEWPORT: wordmark alone top-left; 5/12 copy on the left (Coming soon, headline, one sentence,
+    one action); 7/12 live canvas on the right. Mobile stacks copy above the canvas.
+  FORM: brief-pinned (GO's mockup plus Dave's three.js decision); no seed roll was run.
+```

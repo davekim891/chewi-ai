@@ -37,4 +37,4 @@ Auto-orbit (40 s per turn) with a slight bob. Drag anywhere on the stage to orbi
 
 ## Deploy
 
-GitHub Pages via `.github/workflows/deploy.yml` on push to `main`. The workflow stages only the public files (`index.html`, `css/`, `js/hero.js`, `js/bike.js`, `fonts/`, `assets/`, `CNAME`) into `_site/`; PRODUCT.md, DESIGN.md, this README, `tools/` and the test are never published. `CNAME` is set to `chewi.ai`; the domain needs A records to GitHub Pages and a `www` CNAME to `<org>.github.io`.
+GitHub Pages via `.github/workflows/deploy.yml` on push to `main`. The workflow runs `node tools/stage.mjs _site`, which copies only the public files (`index.html`, `CNAME`, `css/`, `fonts/`, `assets/`, `js/hero.js`, `js/bike.js`, `js/manifest.js`) and fails if anything `index.html` references is missing from the staged tree. PRODUCT.md, DESIGN.md, this README, `tools/` and the test are never published. `CNAME` is set to `chewi.ai`; the domain needs A records to GitHub Pages and a `www` CNAME to `<org>.github.io`.

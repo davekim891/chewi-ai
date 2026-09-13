@@ -1,16 +1,4 @@
 <!doctype html>
-<!--
-  Chewi AI, coming-soon page. Direction contract:
-  THESIS: the proof is the object. A live bicycle with its ten compiled action surfaces labelled is on
-    screen before any sentence is read. Refuses the AI-image hero and the gradient-blob placeholder.
-  OWN-WORLD: near-black ground, thin cool-white wire, four category colours used as data (green contact,
-    cyan grip, violet support, amber rotation and hinge), mono tags that read as compiled ids, Space
-    Grotesk headings, one blue accent reserved for the wordmark and the single action.
-  STORY: "This company makes 3D objects legible to AI. The labels are the product. I will email GO."
-  FIRST VIEWPORT: wordmark alone top-left; 5/12 copy on the left (Coming soon, headline, one sentence,
-    one action); 7/12 live canvas on the right. Mobile stacks copy above the canvas.
-  FORM: brief-pinned (GO's mockup plus Dave's three.js decision); no seed roll was run.
--->
 <html lang="en">
 <head>
   <meta charset="utf-8">
@@ -84,7 +72,7 @@
           <tbody>
             <tr><td>Grips, target error</td><td>172 mm</td><td>0.02 mm</td></tr>
             <tr><td>Pedals, positional error</td><td>7.6 to 9.5 mm</td><td>0.01 mm</td></tr>
-            <tr><td>Pedals, sole-angle mismatch</td><td>67.4&deg;</td><td>0.06&deg;</td></tr>
+            <tr><td>Pedals, sole-angle mismatch</td><td>67.4&deg; (left)</td><td>0.06&deg; left, right within 1.28&deg;</td></tr>
             <tr><td>Seat, pelvis to seat error</td><td>14.4 mm</td><td>0.018 mm</td></tr>
             <tr><td>Tires, gap to ground</td><td>9.0 mm rear, 14.6 mm front</td><td>none, 2.1 to 2.3 mm grounding overlap</td></tr>
             <tr><td>Wheel radius</td><td>5.92 mm short</td><td>compiled radius drives spin and drivetrain phase</td></tr>
@@ -121,7 +109,7 @@
       <div class="manifest-copy">
         <h2>What a compiled asset carries</h2>
         <p class="lede">Every surface Chewi compiles travels with the asset as machine-readable data: what it is, what it is for, and which joint it is rigidly attached to. This is the manifest of the bicycle at the top of the page, <span class="manifest-count">10</span> action surfaces.</p>
-        <p class="caption">Illustrative manifest for the demo asset. Production manifests also bind each surface to geometry and carry constraints, confidence and provenance.</p>
+        <p class="caption">Illustrative manifest for the demo asset above; joint identifiers follow the demo rig's naming. Production manifests also bind each surface to geometry and carry constraints, confidence and provenance.</p>
       </div>
       <div class="manifest-wrap">
         <table class="manifest">
@@ -140,14 +128,14 @@
         <li><h3>Spatial computing &amp; AI glasses</h3><p>Machine understanding of objects, components and relationships.</p></li>
       </ul>
       <div class="where-notes">
-        <div><h3>Built for 3D data at scale</h3><p>Chewi is being developed to automate semantic structuring across large, heterogeneous asset libraries, reducing manual preparation for AI, simulation and world-model applications. Each accepted asset improves the priors for the next.</p></div>
+        <div><h3>Built for 3D data at scale</h3><p>Chewi is being developed to automate semantic structuring across large, heterogeneous asset libraries, reducing manual preparation for AI, simulation and world-model applications. As the library grows, each accepted asset becomes a better prior for the next.</p></div>
         <div><h3>Precision matched to the application</h3><p>Different applications need different levels of semantic and physical precision. Chewi is designed for high-volume automation through higher-assurance workflows, with tighter validation, confidence scores and expert review where the application demands it.</p></div>
       </div>
     </section>
 
     <section class="standards" id="standards">
       <h2>Two standards, kept separate</h2>
-      <p class="lede">An asset that artists and agents can edit is not automatically one that can take part in a shared simulation. Chewi treats them as different bars, with different evidence.</p>
+      <p class="lede">An asset that artists and agents can edit is not automatically one that can take part in a shared simulation. We think of them as two bars, each with its own evidence.</p>
       <div class="standards-cols">
         <div>
           <h3>Production editability</h3>

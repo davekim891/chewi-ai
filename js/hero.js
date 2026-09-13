@@ -39,7 +39,7 @@ let size = { w: 1, h: 1 };
 let last = 0, yaw = 0, pitch = 0, yawT = 0, pitchT = 0;
 let visible = true, lowFpsSince = 0, dprDropped = false, lostTimer = 0;
 let dragging = false, interacted = false, dragYaw = 0, dragPitch = 0, dragVelYaw = 0, dragVelPitch = 0;
-let lastPX = 0, lastPY = 0, lastPT = 0, hovered = null, raycaster, ndc;
+let lastPX = 0, lastPY = 0, lastPT = 0, hovered = null, raycaster, ndc, activePointer = null;
 const hint = root.querySelector('.hero-hint');
 let TARGET, vTmp, nTmp, dTmp;
 
@@ -201,6 +201,8 @@ function init(three, LineSegments2, LineMaterial, LineSegmentsGeometry) {
   }
   stage.addEventListener('pointerdown', (ev) => {
     if (ev.pointerType === 'mouse' && ev.button !== 0) return;
+    if (dragging) return; // one pointer drives the orbit; a second finger is ignored
+    activePointer = ev.pointerId;
     dragging = true; interacted = true; yawT = 0; pitchT = 0;
     dragVelYaw = 0; dragVelPitch = 0;
     lastPX = ev.clientX; lastPY = ev.clientY; lastPT = performance.now();
@@ -210,12 +212,13 @@ function init(three, LineSegments2, LineMaterial, LineSegmentsGeometry) {
   });
   stage.addEventListener('pointermove', (ev) => {
     if (dragging) {
+      if (ev.pointerId !== activePointer) return;
       const now = performance.now();
       const dtp = Math.max(1, now - lastPT) / 1000;
       const dYaw = (ev.clientX - lastPX) * 0.005, dPitch = -(ev.clientY - lastPY) * 0.003;
       dragYaw += dYaw;
       dragPitch = clamp(dragPitch + dPitch, -0.25, 0.55);
-      // smoothed release velocity, capped so a fast flick spins at most a quarter turn
+      // smoothed release velocity; with the 4/s damping the cap gives at most about 0.4 rad of coast
       dragVelYaw = clamp(dragVelYaw * 0.5 + (dYaw / dtp) * 0.5, -1.6, 1.6);
       dragVelPitch = clamp(dragVelPitch * 0.5 + (dPitch / dtp) * 0.5, -1, 1);
       lastPX = ev.clientX; lastPY = ev.clientY; lastPT = now;
@@ -225,14 +228,15 @@ function init(three, LineSegments2, LineMaterial, LineSegmentsGeometry) {
     if (!COARSE_MQ.matches) hoverAt(ev);
   });
   const endDrag = (ev) => {
-    if (!dragging) return;
+    if (!dragging || ev.pointerId !== activePointer) return;
     dragging = false;
+    activePointer = null;
     stage.classList.remove('is-dragging');
     try { stage.releasePointerCapture(ev.pointerId); } catch {}
   };
   stage.addEventListener('pointerup', endDrag);
   window.addEventListener('pointerup', endDrag);
-  stage.addEventListener('pointercancel', endDrag);
+  stage.addEventListener('pointercancel', (ev) => { dragVelYaw = 0; dragVelPitch = 0; endDrag(ev); });
   stage.addEventListener('lostpointercapture', endDrag);
 
   resize();

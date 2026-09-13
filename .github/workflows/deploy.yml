@@ -24,14 +24,8 @@ jobs:
           node-version: '22'
       - name: Geometry check
         run: node js/bike.test.mjs
-      - name: Stage public files only
-        run: |
-          mkdir -p _site/js
-          cp index.html CNAME _site/
-          cp -r css fonts assets _site/
-          cp js/hero.js js/bike.js _site/js/
-          rm -f _site/assets/og.svg
-          find _site -type f | sort
+      - name: Stage public files and verify every reference resolves
+        run: node tools/stage.mjs _site
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
