@@ -236,7 +236,7 @@ function init(three, LineSegments2, LineMaterial, LineSegmentsGeometry) {
   };
   stage.addEventListener('pointerup', endDrag);
   window.addEventListener('pointerup', endDrag);
-  stage.addEventListener('pointercancel', (ev) => { dragVelYaw = 0; dragVelPitch = 0; endDrag(ev); });
+  stage.addEventListener('pointercancel', (ev) => { if (ev.pointerId === activePointer) { dragVelYaw = 0; dragVelPitch = 0; } endDrag(ev); });
   stage.addEventListener('lostpointercapture', endDrag);
 
   resize();

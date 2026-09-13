@@ -16,7 +16,7 @@ for (const p of EXCLUDE) rmSync(join(out, p), { force: true });
 
 // Every local src/href in index.html must resolve inside the staged tree.
 const html = readFileSync(join(out, 'index.html'), 'utf8');
-const refs = [...html.matchAll(/(?:src|href)="([^"#?]+)/g)].map((m) => m[1])
+const refs = [...html.matchAll(/(?:src|href|poster)="([^"#?]+)/g)].map((m) => m[1])
   .filter((u) => !/^(https?:|mailto:|\/$)/.test(u));
 const missing = refs.filter((u) => !existsSync(join(out, u)));
 // bike.js is imported by hero.js and manifest.js; check it too.
