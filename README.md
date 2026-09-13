@@ -33,8 +33,8 @@ Auto-orbit (40 s per turn) with a slight bob. Drag anywhere on the stage to orbi
 
 ## Verification hook
 
-`window.__chewiHero.status()` renders one frame synchronously and returns `{ready, mode, fps, revealed, running, labels[...]}`. `setTime(12)` completes the reveal. `capture()` returns the canvas as a PNG data URL. Query switches: `?nowebgl=1` forces the static fallback, `?reduced=1` forces the reduced-motion path. `test-cdn.html` is the page with a broken three.js pin, for checking the CDN-failure fallback.
+`window.__chewiHero.status()` renders one frame synchronously and returns `{ready, mode, fps, revealed, running, labels[...]}`. `setTime(12)` completes the reveal. `capture()` returns the canvas as a PNG data URL. Query switches: `?nowebgl=1` forces the static fallback, `?reduced=1` forces the reduced-motion path, `?cdnfail=1` imports a three.js version that does not exist to exercise the CDN-failure fallback.
 
 ## Deploy
 
-GitHub Pages via `.github/workflows/deploy.yml` on push to `main`. `CNAME` is set to `chewi.ai`; the domain needs A records to GitHub Pages and a `www` CNAME to `<org>.github.io`.
+GitHub Pages via `.github/workflows/deploy.yml` on push to `main`. The workflow stages only the public files (`index.html`, `css/`, `js/hero.js`, `js/bike.js`, `fonts/`, `assets/`, `CNAME`) into `_site/`; PRODUCT.md, DESIGN.md, this README, `tools/` and the test are never published. `CNAME` is set to `chewi.ai`; the domain needs A records to GitHub Pages and a `www` CNAME to `<org>.github.io`.

@@ -8,7 +8,7 @@ web
 
 ## Users
 
-Primary: technical decision-makers evaluating whether Chewi is worth a conversation. Design-partner prospects at spatial AI, robotics, simulation and world-model teams; investors and platform contacts (the Roblox conversation of 2026-09-12 is the model interaction) who were pointed at the domain after a call or an email. They arrive with context, on a desktop, and spend under a minute. Secondary: anyone who hears the name and checks it exists. (Source: Slack thread from GO, 2026-09-10/12; CHEWI one-sheet.)
+Primary: technical decision-makers evaluating whether Chewi is worth a conversation. Design-partner prospects at spatial AI, robotics, simulation and world-model teams; investors and platform contacts who were pointed at the domain after a call or an email. They arrive with context, on a desktop, and spend under a minute. Secondary: anyone who hears the name and checks it exists. (Source: Slack thread from GO, 2026-09-10/12; CHEWI one-sheet.)
 
 ## Product Purpose
 
@@ -40,10 +40,10 @@ The page is a pre-launch placeholder for chewi.ai (domain not yet purchased as o
 
 ## Evidence on Hand
 
-- CHEWI one-sheet (C:\Users\davek\Downloads\CHEWI_Standalone_One_Sheet (2).pdf): the five layers of structure, the application list, the design-partner paragraph.
-- Demo video "7 - more detailed contact.mp4" (Google Drive, approved for use by Dave; not yet downloaded locally). Shows a compiled C2 contact-surface simulation.
-- Internal chat screenshots of the bike C2 package (seven C2 surfaces: grips, seat, pedals, tire bands) and the pelican rider package.
-- Market brief (C:\PLAYHYBRID\Dominic\chewi-intel\BRIEF.md) for background only; none of its numbers go on this page.
+- CHEWI one-sheet (PDF, held by the team): the five layers of structure, the application list, the design-partner paragraph. Source of the footer copy.
+- Demo video "7 - more detailed contact.mp4" (from the team's Drive, approved for use): a compiled contact-surface rider simulation. On the page as `assets/contact-demo.mp4`.
+- Internal notes on the bike action-surface package (grips, seat, pedals, tire bands) and the rider package.
+- An internal market brief exists for background only; none of its numbers go on this page.
 - Absent: logo file, customer names, testimonials, screenshots of a product UI. Do not fabricate any of these.
 
 ## Product Principles

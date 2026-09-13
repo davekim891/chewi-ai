@@ -87,35 +87,37 @@ function wheel(out, cx, cy) {
 
 // ---- builders --------------------------------------------------------------
 
+// Named ranges into the frame buffer, so tests can check an anchor against the wire it labels.
+export const FRAME_PARTS = {};
+
 export function buildFrame() {
   const out = [];
-  // rear triangle
-  tube(out, J.RL, [J.BB[0], J.BB[1], -0.05]); // chainstays
-  tube(out, J.RR, [J.BB[0], J.BB[1], 0.05]);
-  tube(out, J.RL, J.ST);                      // seatstays
-  tube(out, J.RR, J.ST);
-  // main triangle
-  tube(out, J.BB, J.ST);   // seat tube
-  tube(out, J.BB, J.HTb);  // down tube
-  tube(out, J.ST, J.HTt);  // top tube
-  tube(out, J.HTb, J.HTt, 0.022); // head tube
-  // fork
-  tube(out, J.HTb, J.FL, 0.014);
-  tube(out, J.HTb, J.FR, 0.014);
-  // axles
-  seg(out, J.FL, J.FR);
-  seg(out, J.RL, J.RR);
-  // seat post + saddle outline
-  tube(out, J.ST, J.SD, 0.012);
-  ellipseXZ(out, J.SD[0], J.SD[1], 0, 0.14, 0.07, 28);
-  ellipseXZ(out, J.SD[0], J.SD[1] + 0.025, 0, 0.12, 0.055, 28);
-  // stem + handlebar
-  tube(out, J.HTt, J.BAR, 0.012);
-  tube(out, J.BAR, J.GL, 0.012);
-  tube(out, J.BAR, J.GR, 0.012);
-  // wheels
-  wheel(out, J.RA[0], J.RA[1]);
-  wheel(out, J.FA[0], J.FA[1]);
+  const part = (name, fn) => { const a = out.length; fn(); FRAME_PARTS[name] = [a, out.length]; };
+  part('rear_triangle', () => {
+    tube(out, J.RL, [J.BB[0], J.BB[1], -0.05]); // chainstays
+    tube(out, J.RR, [J.BB[0], J.BB[1], 0.05]);
+    tube(out, J.RL, J.ST);                      // seatstays
+    tube(out, J.RR, J.ST);
+  });
+  part('main_triangle', () => {
+    tube(out, J.BB, J.ST);   // seat tube
+    tube(out, J.BB, J.HTb);  // down tube
+    tube(out, J.ST, J.HTt);  // top tube
+  });
+  part('head_tube', () => { tube(out, J.HTb, J.HTt, 0.022); });
+  part('fork', () => { tube(out, J.HTb, J.FL, 0.014); tube(out, J.HTb, J.FR, 0.014); });
+  part('axle_f', () => { seg(out, J.FL, J.FR); });
+  part('axle_r', () => { seg(out, J.RL, J.RR); });
+  part('seat_post', () => { tube(out, J.ST, J.SD, 0.012); });
+  part('saddle', () => {
+    ellipseXZ(out, J.SD[0], J.SD[1], 0, 0.14, 0.07, 28);
+    ellipseXZ(out, J.SD[0], J.SD[1] + 0.025, 0, 0.12, 0.055, 28);
+  });
+  part('stem', () => { tube(out, J.HTt, J.BAR, 0.012); });
+  part('bar_l', () => { tube(out, J.BAR, J.GL, 0.012); });
+  part('bar_r', () => { tube(out, J.BAR, J.GR, 0.012); });
+  part('wheel_r', () => { wheel(out, J.RA[0], J.RA[1]); });
+  part('wheel_f', () => { wheel(out, J.FA[0], J.FA[1]); });
   return new Float32Array(out);
 }
 
@@ -158,6 +160,9 @@ export function buildGrid() {
 }
 
 // ---- compiled action surfaces ---------------------------------------------
+// joint: the canonical joint the surface is rigidly attached to (shown in the manifest).
+// wire: the named wire part the anchor must sit on (a FRAME_PARTS key, or 'crank' / 'pedal').
+// anchorRef: where the anchor is expected (parent-local), so a moved anchor fails the test.
 // parent: 'frame' | 'crank' | 'pedalL' | 'pedalR' (pedal frames sit at the pedal spindles,
 // counter-rotated so platforms stay level). anchor is in the parent's local frame.
 // facing: 'signed' fades the far side (grips, pedals); 'always' stays visible.
@@ -175,61 +180,61 @@ const HEAD_AXIS = norm(sub(J.HTt, J.HTb));
 
 export const PATCHES = [
   {
-    id: 'tire_r', kind: 'CONTACT', parent: 'frame',
+    id: 'tire_r', joint: 'B_Wheel', wire: 'wheel_r', anchorRef: [J.RA[0], 0.0, 0], kind: 'CONTACT', parent: 'frame',
     shape: { type: 'torusArc', radius: R_WHEEL, tube: 0.026, arc: 0.55 },
     position: [J.RA[0], J.RA[1], 0], rotation: [0, 0, -Math.PI / 2 - 0.275],
     anchor: [J.RA[0], 0.0, 0], normal: null, facing: 'always', offset: [-30, 46],
   },
   {
-    id: 'tire_f', kind: 'CONTACT', parent: 'frame',
+    id: 'tire_f', joint: 'F_Wheel', wire: 'wheel_f', anchorRef: [J.FA[0], 0.0, 0], kind: 'CONTACT', parent: 'frame',
     shape: { type: 'torusArc', radius: R_WHEEL, tube: 0.026, arc: 0.55 },
     position: [J.FA[0], J.FA[1], 0], rotation: [0, 0, -Math.PI / 2 - 0.275],
     anchor: [J.FA[0], 0.0, 0], normal: null, facing: 'always', offset: [30, 46],
   },
   {
-    id: 'crank', kind: 'ROTATION', parent: 'frame',
+    id: 'crank', joint: 'Crank', wire: 'crank', anchorRef: [J.BB[0], J.BB[1], 0], kind: 'ROTATION', parent: 'frame',
     shape: { type: 'ring', inner: 0.045, outer: 0.062 },
     position: [J.BB[0], J.BB[1], 0.0], rotation: [0, 0, 0],
     anchor: [J.BB[0], J.BB[1], 0], normal: null, facing: 'always', offset: [-70, 40],
   },
   {
-    id: 'pedal_l', kind: 'CONTACT', parent: 'pedalL',
+    id: 'pedal_l', joint: 'L_Pedal_Base', wire: 'pedal', anchorRef: [0, 0.012, 0], kind: 'CONTACT', parent: 'pedalL',
     shape: { type: 'disc', radius: 0.042 },
     position: [0, 0.012, 0], rotation: [-Math.PI / 2, 0, 0],
     anchor: [0, 0.012, 0], normal: [0, 0, -1], facing: 'signed', offset: [56, 36],
   },
   {
-    id: 'pedal_r', kind: 'CONTACT', parent: 'pedalR',
+    id: 'pedal_r', joint: 'R_Pedal_Base', wire: 'pedal', anchorRef: [0, 0.012, 0], kind: 'CONTACT', parent: 'pedalR',
     shape: { type: 'disc', radius: 0.042 },
     position: [0, 0.012, 0], rotation: [-Math.PI / 2, 0, 0],
     anchor: [0, 0.012, 0], normal: [0, 0, 1], facing: 'signed', offset: [56, 36],
   },
   {
-    id: 'saddle', kind: 'SUPPORT', parent: 'frame',
+    id: 'saddle', joint: 'M_Body', wire: 'saddle', anchorRef: [J.SD[0], J.SD[1] + 0.015, 0], kind: 'SUPPORT', parent: 'frame',
     shape: { type: 'sphere', radius: 0.13, scale: [1, 0.22, 0.55] },
     position: [J.SD[0], J.SD[1] + 0.02, 0], rotation: [0, 0, 0],
     anchor: [J.SD[0], J.SD[1] + 0.015, 0], normal: null, facing: 'always', offset: [-40, -60],
   },
   {
-    id: 'grip_l', kind: 'GRIP', parent: 'frame',
+    id: 'grip_l', joint: 'L_Handle', wire: 'bar_l', anchorRef: [J.GL[0], J.GL[1], -0.22], kind: 'GRIP', parent: 'frame',
     shape: { type: 'cylinder', radius: 0.024, length: 0.12 },
     position: [J.GL[0], J.GL[1], -0.22], rotation: [Math.PI / 2, 0, 0],
     anchor: [J.GL[0], J.GL[1], -0.22], normal: [0, 0, -1], facing: 'signed', offset: [40, -56],
   },
   {
-    id: 'grip_r', kind: 'GRIP', parent: 'frame',
+    id: 'grip_r', joint: 'R_Handle', wire: 'bar_r', anchorRef: [J.GR[0], J.GR[1], 0.22], kind: 'GRIP', parent: 'frame',
     shape: { type: 'cylinder', radius: 0.024, length: 0.12 },
     position: [J.GR[0], J.GR[1], 0.22], rotation: [Math.PI / 2, 0, 0],
     anchor: [J.GR[0], J.GR[1], 0.22], normal: [0, 0, 1], facing: 'signed', offset: [40, -56],
   },
   {
-    id: 'hub_f', kind: 'ROTATION', parent: 'frame',
+    id: 'hub_f', joint: 'F_Wheel', wire: 'axle_f', anchorRef: [J.FA[0], J.FA[1], 0], kind: 'ROTATION', parent: 'frame',
     shape: { type: 'ring', inner: 0.03, outer: 0.048 },
     position: [J.FA[0], J.FA[1], 0.0], rotation: [0, 0, 0],
     anchor: [J.FA[0], J.FA[1], 0], normal: null, facing: 'always', offset: [64, 10],
   },
   {
-    id: 'headset', kind: 'HINGE', parent: 'frame',
+    id: 'headset', joint: 'Head', wire: 'head_tube', anchorRef: [J.HTt[0], J.HTt[1], 0], kind: 'HINGE', parent: 'frame',
     shape: { type: 'ring', inner: 0.028, outer: 0.044, axis: HEAD_AXIS },
     position: [J.HTt[0], J.HTt[1], 0], rotation: null,
     anchor: [J.HTt[0], J.HTt[1], 0], normal: null, facing: 'always', offset: [70, -30],

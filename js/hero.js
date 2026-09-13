@@ -21,7 +21,7 @@ const ORBIT_PERIOD = 40;   // s per revolution
 const BOB_PERIOD = 13;     // s
 const AZ0 = 0.65;          // starting azimuth, a three-quarter front view
 const EL0 = 0.35;          // base elevation (rad)
-const RADIUS = 3.0;
+const RADIUS = 2.6;
 const FOV = 34;
 const REVEAL_START = 0.6;  // s before the first patch appears
 const REVEAL_STEP = 0.6;   // s between patches
@@ -78,8 +78,10 @@ async function boot() {
   if (window.__chewiForceNoWebGL || !hasWebGL()) return fallback('webgl unavailable');
   let mods;
   try {
+    // ?cdnfail=1 imports a version that does not exist, to exercise the CDN-failure path.
+    const threeSpec = window.__chewiForceCdnFail ? 'https://cdn.jsdelivr.net/npm/three@0.0.0-does-not-exist/build/three.module.js' : 'three';
     mods = await withTimeout(Promise.all([
-      import('three'),
+      import(threeSpec),
       import('three/addons/lines/LineSegments2.js'),
       import('three/addons/lines/LineMaterial.js'),
       import('three/addons/lines/LineSegmentsGeometry.js'),
@@ -92,7 +94,7 @@ async function boot() {
 
 function init(three, LineSegments2, LineMaterial, LineSegmentsGeometry) {
   THREE = three;
-  TARGET = new THREE.Vector3(0.52, 0.44, 0);
+  TARGET = new THREE.Vector3(0.52, 0.42, 0);
   vTmp = new THREE.Vector3(); nTmp = new THREE.Vector3(); dTmp = new THREE.Vector3();
 
   renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: 'low-power' });
@@ -229,6 +231,7 @@ function init(three, LineSegments2, LineMaterial, LineSegmentsGeometry) {
     try { stage.releasePointerCapture(ev.pointerId); } catch {}
   };
   stage.addEventListener('pointerup', endDrag);
+  window.addEventListener('pointerup', endDrag);
   stage.addEventListener('pointercancel', endDrag);
   stage.addEventListener('lostpointercapture', endDrag);
 

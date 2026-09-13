@@ -66,17 +66,45 @@
       </div>
     </section>
 
-    <section class="demo">
-      <h2>What Chewi sees</h2>
+    <section class="demo" id="demo">
       <div class="demo-frame">
         <video muted loop playsinline autoplay preload="metadata" poster="assets/contact-demo-poster.jpg" aria-label="Simulation of a rider on a bicycle where the compiled contact surfaces keep the feet, seat and hands attached through the motion.">
           <source src="assets/contact-demo.mp4" type="video/mp4">
         </video>
       </div>
-      <p class="caption">A compiled contact surface driving a rider simulation. Real output, not a render.</p>
+      <div class="demo-copy">
+        <h2>What Chewi sees</h2>
+        <p class="lede">A rider mounting and pedalling. The highlighted regions are compiled action surfaces: the seat, foot and grip contacts that keep the rider attached to the bicycle through the whole motion.</p>
+        <p class="caption">Real pipeline output, not a render.</p>
+      </div>
+      <div class="deltas">
+        <h3>Joint endpoints versus compiled surfaces, same rider, same bicycle</h3>
+        <table class="delta-table">
+          <thead><tr><th>Contact</th><th>Before</th><th>With compiled surfaces</th></tr></thead>
+          <tbody>
+            <tr><td>Grips, target error</td><td>172 mm</td><td>0.02 mm</td></tr>
+            <tr><td>Pedals, positional error</td><td>7.6 to 9.5 mm</td><td>0.01 mm</td></tr>
+            <tr><td>Pedals, sole-angle mismatch</td><td>67.4&deg;</td><td>0.06&deg;</td></tr>
+            <tr><td>Seat, pelvis to seat error</td><td>14.4 mm</td><td>0.018 mm</td></tr>
+            <tr><td>Tires, gap to ground</td><td>9.0 mm rear, 14.6 mm front</td><td>none, 2.1 to 2.3 mm grounding overlap</td></tr>
+            <tr><td>Wheel radius</td><td>5.92 mm short</td><td>compiled radius drives spin and drivetrain phase</td></tr>
+          </tbody>
+        </table>
+        <p class="caption">Measured on the team's V5.1 validation of this asset pair. Before: targets on the ends of the joint chains. After: targets on the compiled action surfaces.</p>
+      </div>
     </section>
 
-    <section class="layers">
+    <section class="problem" id="problem">
+      <h2>AI understands the world. 3D data doesn't speak its language.</h2>
+      <p class="lede">Foundation models increasingly understand objects, behaviours and relationships in the physical world. Existing 3D data is inconsistent, or structured for human production workflows rather than for AI reasoning. Chewi closes that gap.</p>
+      <ol class="flow" aria-label="How Chewi sits between 3D data and AI">
+        <li><span class="flow-k">3D asset</span><span class="flow-v">Geometry and structure, as it exists in the library today.</span></li>
+        <li><span class="flow-k">Chewi</span><span class="flow-v">A semantic correspondence layer, compiled automatically and validated.</span></li>
+        <li><span class="flow-k">AI / world model</span><span class="flow-v">Understands, reasons about and interacts with the object.</span></li>
+      </ol>
+    </section>
+
+    <section class="layers" id="layers">
       <h2>From geometry to machine-understandable structure</h2>
       <p class="intro">Chewi enriches assets with structured information about components, relationships, articulation, physical properties and possible interactions, so AI models can apply what they already know about the world directly to 3D data.</p>
       <ul class="layer-grid">
@@ -88,9 +116,64 @@
       </ul>
       <p class="built-for">Built for world models, robotics, industrial simulation and spatial computing.</p>
     </section>
+
+    <section class="manifest-section" id="manifest">
+      <div class="manifest-copy">
+        <h2>What a compiled asset carries</h2>
+        <p class="lede">Every surface Chewi compiles travels with the asset as machine-readable data: what it is, what it is for, and which joint it is rigidly attached to. This is the manifest of the bicycle at the top of the page, <span class="manifest-count">10</span> action surfaces.</p>
+        <p class="caption">Illustrative manifest for the demo asset. Production manifests also bind each surface to geometry and carry constraints, confidence and provenance.</p>
+      </div>
+      <div class="manifest-wrap">
+        <table class="manifest">
+          <thead><tr><th>id</th><th>kind</th><th>role</th><th>attached_to</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="where" id="where">
+      <h2>Where this matters</h2>
+      <ul class="where-list">
+        <li><h3>World models &amp; spatial AI</h3><p>Representations for models that reason about the physical world.</p></li>
+        <li><h3>Robotics &amp; physical AI</h3><p>Structured 3D data for simulation, training and interaction.</p></li>
+        <li><h3>Industrial simulation &amp; digital twins</h3><p>Higher-precision semantic and physical representations.</p></li>
+        <li><h3>Spatial computing &amp; AI glasses</h3><p>Machine understanding of objects, components and relationships.</p></li>
+      </ul>
+      <div class="where-notes">
+        <div><h3>Built for 3D data at scale</h3><p>Chewi is being developed to automate semantic structuring across large, heterogeneous asset libraries, reducing manual preparation for AI, simulation and world-model applications. Each accepted asset improves the priors for the next.</p></div>
+        <div><h3>Precision matched to the application</h3><p>Different applications need different levels of semantic and physical precision. Chewi is designed for high-volume automation through higher-assurance workflows, with tighter validation, confidence scores and expert review where the application demands it.</p></div>
+      </div>
+    </section>
+
+    <section class="standards" id="standards">
+      <h2>Two standards, kept separate</h2>
+      <p class="lede">An asset that artists and agents can edit is not automatically one that can take part in a shared simulation. Chewi treats them as different bars, with different evidence.</p>
+      <div class="standards-cols">
+        <div>
+          <h3>Production editability</h3>
+          <p>Can humans and AI agents modify the asset reliably?</p>
+          <ul>
+            <li><b>Meaning</b> identifiable parts, landmarks, joints and material regions.</li>
+            <li><b>Correspondence</b> stable references across revisions, even when topology changes.</li>
+            <li><b>Constraints</b> protected features, attachments, symmetry, permitted deformation.</li>
+            <li><b>Review and recovery</b> recorded changes, validation results, reversible versions.</li>
+          </ul>
+        </div>
+        <div>
+          <h3>Shared-world interaction</h3>
+          <p>Can the asset interact consistently with other participants under the same rules?</p>
+          <ul>
+            <li><b>Conventions</b> common units and coordinate frames.</li>
+            <li><b>Physics</b> collision geometry, physical properties, joint limits.</li>
+            <li><b>Actions</b> interaction points, supported actions, rules for changing state.</li>
+            <li><b>Evidence</b> from contact, loading and articulation over time, not from a rendering check.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
   </main>
 
-  <footer class="close">
+  <footer class="close" id="contact">
     <h2>We're looking for design partners.</h2>
     <p class="lede">We're speaking with teams across spatial AI, robotics, simulation and world models about where machine-readable 3D correspondence creates the most value. If your team works with large-scale 3D data, we'd like to compare notes.</p>
     <a class="cta" href="mailto:goburton@playhybrid.com?subject=Chewi%20AI">Curious? Get in touch
@@ -100,10 +183,11 @@
   </footer>
 
   <script>
-    // Test switches, documented in README: ?reduced=1 and ?nowebgl=1 force the fallback paths.
+    // Test switches, documented in README: ?reduced=1, ?nowebgl=1 and ?cdnfail=1 force the fallback paths.
     const q = new URLSearchParams(location.search);
     if (q.has('reduced')) window.__chewiForceReduced = true;
     if (q.has('nowebgl')) window.__chewiForceNoWebGL = true;
+    if (q.has('cdnfail')) window.__chewiForceCdnFail = true;
     // Reduced motion: no autoplaying video, show the native controls instead.
     if (matchMedia('(prefers-reduced-motion: reduce)').matches || window.__chewiForceReduced) {
       const v = document.querySelector('.demo video');
@@ -111,5 +195,6 @@
     }
   </script>
   <script type="module" src="js/hero.js"></script>
+  <script type="module" src="js/manifest.js"></script>
 </body>
 </html>

@@ -5,8 +5,8 @@ import { writeFileSync } from 'node:fs';
 import { buildFrame, buildCrank, buildPedal, buildGrid, PATCHES, COLORS, J, pedalOffsets } from '../js/bike.js';
 
 // Same constants as hero.js
-const ORBIT_PERIOD = 40, BOB_PERIOD = 13, AZ0 = 0.65, EL0 = 0.35, RADIUS = 3.0, FOV = 34;
-const TARGET = [0.52, 0.44, 0];
+const ORBIT_PERIOD = 40, BOB_PERIOD = 13, AZ0 = 0.65, EL0 = 0.35, RADIUS = 2.6, FOV = 34;
+const TARGET = [0.52, 0.42, 0];
 const T = 12; // reveal complete, same frame as the verification probes
 
 // ---- vector helpers ----
