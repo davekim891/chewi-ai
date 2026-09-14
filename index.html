@@ -81,16 +81,8 @@
     </section>
 
     <section class="problem" id="problem">
-      <div class="problem-copy">
-        <h2>AI understands the world. 3D data doesn't speak its language.</h2>
-        <p class="lede">Foundation models increasingly understand objects, behaviours and relationships in the physical world. Existing 3D data is inconsistent, or structured for human production workflows rather than for AI reasoning. Chewi closes that gap.</p>
-      </div>
-      <figure class="concept">
-        <div class="demo-frame">
-          <video muted loop playsinline preload="none" poster="assets/hand-demo-poster.jpg" data-lazy-src="assets/hand-demo.mp4" aria-label="A closed human hand opens and turns into a labelled hologram: fingertip contacts, knuckle rotations and the palm support surface."></video>
-        </div>
-        <figcaption class="caption">A hand, and the structure Chewi would compile from it. Concept render, not pipeline output.</figcaption>
-      </figure>
+      <h2>AI understands the world. 3D data doesn't speak its language.</h2>
+      <p class="lede">Foundation models increasingly understand objects, behaviours and relationships in the physical world. Existing 3D data is inconsistent, or structured for human production workflows rather than for AI reasoning. Chewi closes that gap.</p>
       <ol class="flow" aria-label="How Chewi sits between 3D data and AI">
         <li><span class="flow-k">3D asset</span><span class="flow-v">Geometry and structure, as it exists in the library today.</span></li>
         <li><span class="flow-k">Chewi</span><span class="flow-v">A semantic correspondence layer, compiled automatically and validated.</span></li>
@@ -214,14 +206,6 @@
     if (matchMedia('(prefers-reduced-motion: reduce)').matches || window.__chewiForceReduced) {
       for (const v of document.querySelectorAll('video[autoplay]')) { v.removeAttribute('autoplay'); v.autoplay = false; v.pause(); v.controls = true; }
     }
-    // Below-the-fold clips load only when their section comes into view.
-    const lazyVideos = document.querySelectorAll('video[data-lazy-src]');
-    const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches || window.__chewiForceReduced;
-    const loadVideo = (v) => { v.src = v.dataset.lazySrc; v.removeAttribute('data-lazy-src'); if (reduced) { v.controls = true; } else { v.autoplay = true; v.play().catch(() => {}); } };
-    if ('IntersectionObserver' in window) {
-      const io = new IntersectionObserver((es) => { for (const e of es) if (e.isIntersecting) { loadVideo(e.target); io.unobserve(e.target); } }, { rootMargin: '200px' });
-      lazyVideos.forEach((v) => io.observe(v));
-    } else lazyVideos.forEach(loadVideo);
   </script>
   <script type="module" src="js/hero-image.js"></script>
   <script type="module" src="js/scenes.js"></script>

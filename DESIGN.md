@@ -47,7 +47,7 @@ One authored moment: the hero object orbits (40 s period, slight bob), the ten s
 
 ## Section holograms
 
-Two more hologram scenes reuse the hero's engine and vocabulary: a hand opening from a fist (layers section, right column) and a hand grasping a cup (two-standards section, left column). Same materials, same tag chips, same drag and hover. Contact surfaces on the grasp only light fully while the grip is engaged, so the animation itself carries the meaning of a contact. The Higgsfield concept clip in the problem section is captioned as a concept render, never as output.
+Two more hologram scenes reuse the hero's engine and vocabulary: a hand opening from a fist (layers section, right column) and a hand grasping a cup (two-standards section, left column). Same materials, same tag chips, same drag and hover. Contact surfaces on the grasp only light fully while the grip is engaged, so the animation itself carries the meaning of a contact.
 
 ## Fallbacks
 

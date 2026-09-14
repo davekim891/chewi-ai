@@ -24,7 +24,7 @@ The page is a pre-launch placeholder for chewi.ai (domain not yet purchased as o
 
 ## Capabilities and Constraints
 
-- Coming-soon surface: wordmark, tagline, "Coming soon", one contact action, an explanation of what Chewi compiles, one real demo clip, one concept clip captioned as such, and three live hologram scenes (bicycle, hand, hand and cup) built on the page's own demo rigs.
+- Coming-soon surface: wordmark, tagline, "Coming soon", one contact action, an explanation of what Chewi compiles, one real demo clip, the approved bicycle render as the hero with live tags, and two live hologram scenes (hand, hand and cup) built on the page's own demo rigs.
 - Confirmed copy from GO: "CHEWI AI", "The intelligence layer between AI and the 3D world.", "Coming Soon", "Curious? Click Here" (contact intent; final label may be reworded but it must stay one contact action).
 - No email-capture backend (decided by Dave 2026-09-13; mailto instead).
 - No fabricated customers, quotes, metrics or partner logos. The one-sheet's "We're looking for design partners" is the only call to collaboration.
