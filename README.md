@@ -24,7 +24,7 @@ node js/bike.test.mjs
 - Tokens and layout: `css/site.css`.
 - Hero scene: `js/hero.js` (renderer, labels, fallbacks) and `js/bike.js` (bicycle geometry and the ten action surfaces).
 - Demo clip: `assets/contact-demo.mp4` + `assets/contact-demo-poster.jpg`. Replace both to swap the demo; keep the file names.
-- Share image: `assets/og.jpg` (1200x630).
+- Share image: `assets/og.jpg` (1200x630), made from the labelled Grok render (`tools/label-overlay.html` produces the labels). `tools/render-static.mjs` still writes an alternative `assets/og.svg`, unused.
 - Static hero for no-WebGL: `assets/hero-fallback.svg`.
 
 ## Hero interactions

@@ -1,0 +1,66 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Chewi label overlay</title>
+<style>
+@font-face{font-family:'Space Grotesk';font-weight:700;src:url('../fonts/space-grotesk-latin-700.woff2') format('woff2')}
+@font-face{font-family:'JetBrains Mono';font-weight:400;src:url('../fonts/jetbrains-mono-latin.woff2') format('woff2')}
+@font-face{font-family:'JetBrains Mono';font-weight:600;src:url('../fonts/jetbrains-mono-latin-600.woff2') format('woff2')}
+html,body{margin:0;background:#05070a;width:1792px;height:1008px;overflow:hidden}
+#stage{position:relative;width:1792px;height:1008px}
+#stage img{position:absolute;inset:0;width:1792px;height:1008px;display:block}
+svg{position:absolute;inset:0;width:1792px;height:1008px}
+.tag{position:absolute;display:grid;gap:2px;padding:8px 12px 9px;font-family:'JetBrains Mono',Consolas,monospace;line-height:1.15;
+  background:rgba(5,7,10,.88);border:1px solid var(--c);border-radius:5px;transform:translate(-50%,-50%)}
+.tag b{font-size:15px;font-weight:600;letter-spacing:.16em;color:var(--c)}
+.tag i{font-style:normal;font-size:13px;color:#8b95a1}
+.wordmark{position:absolute;left:48px;top:40px;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:20px;letter-spacing:.24em;color:#e9edf1}
+.wordmark span{color:#4da3ff}
+.legend{position:absolute;left:48px;bottom:40px;display:flex;gap:26px;font-family:'JetBrains Mono',monospace;font-size:13px;letter-spacing:.12em;color:#8b95a1}
+.legend span::before{content:'';display:inline-block;width:10px;height:10px;border-radius:2px;background:var(--c);margin-right:9px;vertical-align:-1px}
+.caption{position:absolute;right:48px;bottom:40px;font-family:'JetBrains Mono',monospace;font-size:13px;letter-spacing:.06em;color:#8b95a1}
+</style>
+<div id="stage">
+  <img src="file:///C:/Users/davek/Downloads/grok-image-a7e0d4a4-aabe-4fc5-8258-5c0d662265b6.jpg" alt="">
+  <svg id="leaders" aria-hidden="true"></svg>
+  <div class="wordmark">CHEWI <span>AI</span></div>
+  <div class="legend">
+    <span style="--c:#4ade80">CONTACT</span><span style="--c:#38d6e0">GRIP</span><span style="--c:#a78bfa">SUPPORT</span><span style="--c:#f5b544">ROTATION</span><span style="--c:#f5b544">HINGE</span>
+  </div>
+  <div class="caption">compiled action surfaces, 10 of 10</div>
+</div>
+<script>
+const C = { CONTACT:'#4ade80', GRIP:'#38d6e0', SUPPORT:'#a78bfa', ROTATION:'#f5b544', HINGE:'#f5b544' };
+// [kind, id, anchorX, anchorY, tagX, tagY] in image pixels (1792x1008). The bike is seen from its right side.
+const L = [
+  ['SUPPORT','saddle',      655,160,  380, 92],
+  ['GRIP','grip_r',         948,160,  820, 52],
+  ['GRIP','grip_l',        1218,148, 1372, 62],
+  ['HINGE','headset',      1077,276, 1270,236],
+  ['ROTATION','hub_f',     1152,615, 1440,560],
+  ['ROTATION','crank',      742,612,  640,810],
+  ['CONTACT','pedal_l',     665,520,  560,400],
+  ['CONTACT','pedal_r',     856,702,  935,830],
+  ['CONTACT','tire_r',      512,722,  200,650],
+  ['CONTACT','tire_f',     1168,858, 1450,858],
+];
+const stage = document.getElementById('stage'), svg = document.getElementById('leaders');
+for (const [kind,id,ax,ay,tx,ty] of L) {
+  const t = document.createElement('div'); t.className='tag'; t.style.setProperty('--c', C[kind]);
+  t.style.left = tx+'px'; t.style.top = ty+'px'; t.innerHTML = `<b>${kind}</b><i>${id}</i>`; stage.appendChild(t);
+}
+requestAnimationFrame(() => {
+  for (const [kind,id,ax,ay,tx,ty] of L) {
+    const t = [...document.querySelectorAll('.tag')].find(e => e.querySelector('i').textContent===id);
+    const r = t.getBoundingClientRect();
+    const cx = Math.max(r.left, Math.min(ax, r.right)), cy = Math.max(r.top, Math.min(ay, r.bottom));
+    const l = document.createElementNS('http://www.w3.org/2000/svg','line');
+    l.setAttribute('x1',ax); l.setAttribute('y1',ay); l.setAttribute('x2',cx); l.setAttribute('y2',cy);
+    l.setAttribute('stroke',C[kind]); l.setAttribute('stroke-width','1.5'); l.setAttribute('stroke-opacity','0.85');
+    svg.appendChild(l);
+    const d = document.createElementNS('http://www.w3.org/2000/svg','circle');
+    d.setAttribute('cx',ax); d.setAttribute('cy',ay); d.setAttribute('r','4'); d.setAttribute('fill',C[kind]);
+    svg.appendChild(d);
+  }
+  document.documentElement.dataset.ready = '1';
+});
+</script>
