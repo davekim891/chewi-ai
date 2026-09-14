@@ -1,6 +1,6 @@
 # Chewi AI landing page: handoff (2026-09-14, end of session)
 
-Repo: `C:\WEB\chewi-ai`, pushed to https://github.com/davekim891/chewi-ai (PRIVATE, branch `main`, tag `3d_v1`). GitHub Pages is not enabled: on this account it needs a public repo or a paid plan, so the deploy job in Actions will fail until one of those changes; the test job still runs.
+Repo: `C:\WEB\chewi-ai`, pushed to https://github.com/davekim891/chewi-ai (PUBLIC, branch `main`, tag `3d_v1`). GitHub Pages is enabled (source: GitHub Actions) and the site is live at https://davekim891.github.io/chewi-ai/ (verified: hero, 27 tags, mesh served as model/gltf-binary, internal docs 404).
 Local preview: launch config `chewi` in `C:\Fable 5.1\.claude\launch.json` (python http.server on 8732 serving this folder). A server on 8732 was still running at handoff (PID may differ; verify with `netstat -ano | findstr 8732`, and check it serves this tree before trusting any capture).
 
 ## What the page is
@@ -53,8 +53,7 @@ Five Opus auditor rounds ran (plan-verified; first KILL for tree churn and publi
 
 ## Open items for Dave
 
-1. Go live: make the repo public (or upgrade the plan) and enable Pages (Settings, Pages, Source: GitHub Actions). Workflow: `.github/workflows/deploy.yml` (three test steps, then `tools/stage.mjs`, then Pages). `PRODUCT.md`, `DESIGN.md`, `HANDOFF.md` never enter the deploy artifact.
-2. Domain: buy chewi.ai; `CNAME` is in the repo; DNS records to hand over once the repo exists.
+1. Domain: buy chewi.ai, then at the registrar add A records for the apex to GitHub Pages' documented IPs (185.199.108.153, 185.199.109.153, 185.199.110.153, 185.199.111.153; confirm against GitHub's current Pages docs) and a CNAME for `www` to `davekim891.github.io`. Then set `PUBLISH_CNAME=1` on the stage step in `.github/workflows/deploy.yml` (or run `gh api -X PUT repos/davekim891/chewi-ai/pages -f cname=chewi.ai`), push, and enable "Enforce HTTPS" in Settings, Pages once the certificate is issued. Until then the `CNAME` file is deliberately left out of the artifact, because with it present Pages serves only on the custom domain.
 3. GO's read: the measurements table (Sean's V5.1 numbers) and the "Two standards" section (from the team's discussion note).
 4. Decide whether the hero should move to the Meshy geometry (3d_v1) or stay on the TRELLIS reconstruction.
 5. Optional: compress `assets/bike.glb` (meshopt or draco) if load time matters; it is the second-largest asset after the demo clip (7.1 MB).
