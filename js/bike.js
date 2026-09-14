@@ -275,6 +275,16 @@ export const PATCHES = [
   },
 ];
 
+// What each kind means, in the page's own words (detail card + manifest).
+export const ROLES = { CONTACT: 'load-bearing contact', GRIP: 'graspable surface', SUPPORT: 'seating surface', ROTATION: 'rotation axis', HINGE: 'steering axis' };
+export const KIND_NOTES = {
+  CONTACT: 'Where load passes between the asset and the world or a rider. Used for grounding, foot placement and physics.',
+  GRIP: 'A surface a hand can close around. Used to place and hold a rider or an actuator.',
+  SUPPORT: 'A surface that carries a body’s weight. Used to seat a rider.',
+  ROTATION: 'An axis a part turns about, with its joint. Used to drive and animate the mechanism.',
+  HINGE: 'A constrained pivot between two parts: here the steering axis.',
+};
+
 // Order in which patches reveal on first paint.
 export const REVEAL_ORDER = ['tire_r', 'tire_f', 'crank', 'pedal_l', 'pedal_r', 'saddle', 'grip_l', 'grip_r', 'hub_f', 'headset'];
 
