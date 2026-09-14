@@ -26,7 +26,7 @@ node js/grasp.test.mjs
 - Tokens and layout: `css/site.css`.
 - Hologram engine: `js/holo.js` (three.js loading, fallbacks, resize, visibility, drag, hover, labels, status hook), shared by three scenes.
 - Hero scene: `js/hero.js` on `js/bike.js` (bicycle geometry and the ten action surfaces).
-- Hand scenes: `js/scenes.js` on `js/hand.js` (a hand opening from a fist in the layers section; a hand grasping a cup in the two-standards section). The grasp layout and finger curls come from `js/grasp-layout.js`, solved so every labelled fingertip lands on the cup wall; `js/grasp.test.mjs` checks that with the same forward kinematics. Surface colours live in `js/colors.js`.
+- Hand scenes: `js/scenes.js` on `js/hand.js` (a hand opening from a fist in the layers section; a hand grasping a cup in the two-standards section). The grasp layout and finger curls come from `js/grasp-layout.js`: a pure forward-kinematics model of the rig, a solver that closes each digit until its rendered contact sphere touches the tapered cup wall while every capsule and joint ball stays outside it, and `js/grasp.test.mjs` asserting exactly that. `node tools/grasp-search.mjs` re-searches the hand position and thumb angles if the hand or cup geometry changes. Surface colours live in `js/colors.js`.
 - Concept clip: `assets/hand-demo.mp4` (Higgsfield render, captioned as a concept, not pipeline output).
 - Fallback stills for the hand scenes come from `tools/capture.html?scene=hand|grasp` rendered headless (see below).
 - Demo clip: `assets/contact-demo.mp4` + `assets/contact-demo-poster.jpg`. Replace both to swap the demo; keep the file names.

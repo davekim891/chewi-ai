@@ -25,8 +25,32 @@ function mul(A, B) { const o = new Array(9); for (let r = 0; r < 3; r++) for (le
 function apply(M, v) { return [M[0] * v[0] + M[1] * v[1] + M[2] * v[2], M[3] * v[0] + M[4] * v[1] + M[5] * v[2], M[6] * v[0] + M[7] * v[1] + M[8] * v[2]]; }
 const eulerXYZ = ([x, y, z]) => mul(mul(rotX(x), rotY(y)), rotZ(z));
 
-// Hand-local position of a point `tipOffset` in the last segment's frame, for a finger definition,
-// holder Euler [x,y,z] and per-segment curl angles (radians about the segment's local x).
+// Radii the rig renders with (see buildHand): capsule per segment, joint ball at each segment start, tip ball.
+export const SEG_R = (def, i) => def.r * (1 - i * 0.07);
+export const JOINT_R = (def) => def.r * 0.88;
+export const TIP_BALL_R = (def) => def.r * 0.8;
+// Where the contact patch sphere sits in the last segment's frame, and its radius (see scenes.js handPatches).
+export const TIP_SPHERE_OFFSET = (def) => [0, def.segs[def.segs.length - 1] - 0.002, 0.002];
+export const TIP_SPHERE_R = (def) => def.r * 1.05;
+
+// Hand-local joint positions [base, joint1, ..., tip] plus the rotation of each segment, for a finger
+// definition, holder Euler [x,y,z] and per-segment curl angles (radians about the segment's local x).
+export function fingerChainPoints(def, holderEuler, angles) {
+  let R = eulerXYZ(holderEuler);
+  let p = [...def.base];
+  let prevLen = 0;
+  const pts = [], rots = [];
+  for (let i = 0; i < def.segs.length; i++) {
+    p = p.map((v, k) => v + apply(R, [0, prevLen, 0])[k]);
+    R = mul(R, rotX(angles[i] || 0));
+    pts.push(p); rots.push(R);
+    prevLen = def.segs[i];
+  }
+  const tip = p.map((v, k) => v + apply(R, [0, prevLen, 0])[k]);
+  return { pts, rots, tip, last: R };
+}
+
+// Hand-local position of a point `tipOffset` in the last segment's frame.
 export function fingerChainFK(def, holderEuler, angles, tipOffset = [0, 0, 0]) {
   let R = eulerXYZ(holderEuler);
   let p = [...def.base];
