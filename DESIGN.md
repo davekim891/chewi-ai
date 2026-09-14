@@ -45,6 +45,10 @@ One radius: 6px on interactive and framed elements, 4px on tag chips. Hairline b
 
 One authored moment: the hero object orbits (40 s period, slight bob), the ten surfaces reveal in sequence 0.6 s apart on first paint, then pulse gently. Pointer parallax on fine pointers until the first drag; drag to orbit on all pointers with a short, capped inertia; hovering a surface brightens it and its tag. Everything else is a hover or press state. `prefers-reduced-motion`: static 3/4 view, all surfaces shown, no orbit, video does not autoplay.
 
+## Section holograms
+
+Two more hologram scenes reuse the hero's engine and vocabulary: a hand opening from a fist (layers section, right column) and a hand grasping a cup (two-standards section, left column). Same materials, same tag chips, same drag and hover. Contact surfaces on the grasp only light fully while the grip is engaged, so the animation itself carries the meaning of a contact. The Higgsfield concept clip in the problem section is captioned as a concept render, never as output.
+
 ## Fallbacks
 
 WebGL or CDN unavailable: `assets/hero-fallback.svg` in the same stage box; copy and action unchanged. The page must read completely with the canvas gone.

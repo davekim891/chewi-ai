@@ -22,7 +22,11 @@ node js/bike.test.mjs
 
 - Copy: `index.html` (all visible text is there, nothing is generated).
 - Tokens and layout: `css/site.css`.
-- Hero scene: `js/hero.js` (renderer, labels, fallbacks) and `js/bike.js` (bicycle geometry and the ten action surfaces).
+- Hologram engine: `js/holo.js` (three.js loading, fallbacks, resize, visibility, drag, hover, labels, status hook), shared by three scenes.
+- Hero scene: `js/hero.js` on `js/bike.js` (bicycle geometry and the ten action surfaces).
+- Hand scenes: `js/scenes.js` on `js/hand.js` (a hand opening from a fist in the layers section; a hand grasping a cup in the two-standards section).
+- Concept clip: `assets/hand-demo.mp4` (Higgsfield render, captioned as a concept, not pipeline output).
+- Fallback stills for the hand scenes come from `tools/capture.html?scene=hand|grasp` rendered headless (see below).
 - Demo clip: `assets/contact-demo.mp4` + `assets/contact-demo-poster.jpg`. Replace both to swap the demo; keep the file names.
 - Share image: `assets/og.jpg` (1200x630), made from the labelled Grok render (`tools/label-overlay.html` produces the labels). `tools/render-static.mjs` still writes an alternative `assets/og.svg`, unused.
 - Static hero for no-WebGL: `assets/hero-fallback.svg`.
@@ -33,7 +37,17 @@ Auto-orbit (40 s per turn) with a slight bob. Drag anywhere on the stage to orbi
 
 ## Verification hook
 
-`window.__chewiHero.status()` renders one frame synchronously and returns `{ready, mode, fps, revealed, running, labels[...]}`. `setTime(12)` completes the reveal. `capture()` returns the canvas as a PNG data URL. Query switches: `?nowebgl=1` forces the static fallback, `?reduced=1` forces the reduced-motion path, `?cdnfail=1` imports a three.js version that does not exist to exercise the CDN-failure fallback.
+Every scene registers in `window.__chewiScenes` (`hero`, `hand`, `grasp`); `window.__chewiHero` is the hero's api. `status()` renders one frame synchronously and returns `{ready, mode, fps, revealed, running, labels[...]}`. `setTime(12)` completes the reveal. `capture()` returns the canvas as a PNG data URL. Query switches: `?nowebgl=1` forces the static fallback, `?reduced=1` forces the reduced-motion path, `?cdnfail=1` imports a three.js version that does not exist to exercise the CDN-failure fallback.
+
+## Regenerating the fallback stills
+
+With the local server running:
+
+```
+"C:\Program Files\Google\Chrome\Application\chrome.exe" --headless=new --hide-scrollbars --window-size=1200,1000 --virtual-time-budget=8000 --screenshot=assets\hand-fallback.png "http://localhost:8732/tools/capture.html?scene=hand"
+```
+
+Same for `grasp`. `tools/capture.html` also exposes a `<pre id="status">` readout for `--dump-dom` probes.
 
 ## Deploy
 

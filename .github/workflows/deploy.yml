@@ -23,7 +23,7 @@ jobs:
         with:
           node-version: '22'
       - name: Geometry check
-        run: node js/bike.test.mjs
+        run: node js/bike.test.mjs && node js/hand.test.mjs
       - name: Stage public files and verify every reference resolves
         run: node tools/stage.mjs _site
       - name: Upload Pages artifact

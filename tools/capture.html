@@ -1,0 +1,20 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Chewi scene capture</title>
+<!-- Renders one scene full-window for a headless screenshot: capture.html?scene=hero|hand|grasp (reduced pose). -->
+<script>window.__chewiForceReduced = true;</script>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/"}}</script>
+<link rel="stylesheet" href="../css/site.css">
+<style>html,body{background:#0b0d10;margin:0;overflow:hidden;width:100vw;height:100vh}#mount{position:absolute;left:0;top:0;width:100vw;height:100vh}.holo{position:absolute!important;left:0;top:0;width:100vw!important;height:100vh!important}.holo .holo-stage{position:absolute!important;left:0;top:0;width:100vw!important;height:100vh!important;aspect-ratio:auto!important;max-height:none!important}</style>
+<div id="mount"></div>
+<script type="module">
+  const scene = new URLSearchParams(location.search).get('scene') || 'hero';
+  const attr = scene === 'hero' ? 'data-hero' : `data-scene="${scene}"`;
+  document.getElementById('mount').innerHTML = `<div class="holo" ${attr} data-mode="loading"><div class="holo-stage"><canvas></canvas><svg class="holo-leaders" aria-hidden="true"></svg><div class="holo-tags" aria-hidden="true"></div></div></div>`;
+  await import(scene === 'hero' ? '../js/hero.js' : '../js/scenes.js');
+  // status readout for --dump-dom probes
+  const pre = document.createElement('pre'); pre.id = 'status'; pre.style.cssText = 'position:absolute;left:0;top:0;color:#0000;font-size:1px;margin:0';
+  document.body.appendChild(pre);
+  const tick = () => { const api = window.__chewiScenes[scene]; if (api) { const s = api.status(); pre.textContent = JSON.stringify({ mode: s.mode, error: s.error, canvas: s.canvas, revealed: s.revealed, labels: s.labels.map((l) => [l.name, Math.round(l.x), Math.round(l.y), +l.opacity.toFixed(2)]) }); } setTimeout(tick, 500); };
+  tick();
+</script>

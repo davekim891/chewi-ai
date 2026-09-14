@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const out = resolve(process.argv[2] || '_site');
-const PUBLIC = ['index.html', 'CNAME', 'css', 'fonts', 'assets', 'js/hero.js', 'js/bike.js', 'js/manifest.js'];
+const PUBLIC = ['index.html', 'CNAME', 'css', 'fonts', 'assets', 'js/holo.js', 'js/hero.js', 'js/bike.js', 'js/manifest.js', 'js/hand.js', 'js/scenes.js'];
 const EXCLUDE = ['assets/og.svg'];
 
 rmSync(out, { recursive: true, force: true });
@@ -19,8 +19,11 @@ const html = readFileSync(join(out, 'index.html'), 'utf8');
 const refs = [...html.matchAll(/(?:src|href|poster)="([^"#?]+)/g)].map((m) => m[1])
   .filter((u) => !/^(https?:|mailto:|\/$)/.test(u));
 const missing = refs.filter((u) => !existsSync(join(out, u)));
-// bike.js is imported by hero.js and manifest.js; check it too.
-if (!existsSync(join(out, 'js/bike.js'))) missing.push('js/bike.js');
+// Every relative import inside the staged modules must resolve too.
+for (const f of readdirSync(join(out, 'js'))) {
+  const src = readFileSync(join(out, 'js', f), 'utf8');
+  for (const m of src.matchAll(/from\s+'\.\/([^']+)'/g)) if (!existsSync(join(out, 'js', m[1]))) missing.push('js/' + m[1] + ' (imported by js/' + f + ')');
+}
 
 const files = [];
 (function walk(d) { for (const f of readdirSync(d)) { const p = join(d, f); statSync(p).isDirectory() ? walk(p) : files.push(p.slice(out.length + 1).replace(/\\/g, '/')); } })(out);

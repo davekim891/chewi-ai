@@ -33,7 +33,7 @@
   </header>
 
   <main>
-    <section class="hero" data-hero data-mode="loading">
+    <section class="hero holo" data-hero data-mode="loading">
       <div class="hero-copy">
         <p class="eyebrow">Coming soon</p>
         <h1>The intelligence layer between AI and the 3D&nbsp;world.</h1>
@@ -43,12 +43,12 @@
         </a>
       </div>
 
-      <div class="hero-stage">
+      <div class="holo-stage">
         <canvas aria-label="A wireframe bicycle rotating slowly, with its compiled action surfaces highlighted and labelled: two grips, the saddle, two pedals, both tire contact bands, the crank, the front hub and the headset."></canvas>
-        <svg class="hero-leaders" aria-hidden="true"></svg>
-        <div class="hero-tags" aria-hidden="true"></div>
-        <p class="hero-hint" aria-hidden="true">Drag to orbit</p>
-        <picture class="hero-fallback" hidden>
+        <svg class="holo-leaders" aria-hidden="true"></svg>
+        <div class="holo-tags" aria-hidden="true"></div>
+        <p class="holo-hint" aria-hidden="true">Drag to orbit</p>
+        <picture class="holo-fallback" hidden>
           <img src="assets/hero-fallback.svg" width="1200" height="1000" alt="A wireframe bicycle with its compiled action surfaces labelled: grips, saddle, pedals, tire contact, crank, hub and headset.">
         </picture>
       </div>
@@ -83,8 +83,18 @@
     </section>
 
     <section class="problem" id="problem">
-      <h2>AI understands the world. 3D data doesn't speak its language.</h2>
-      <p class="lede">Foundation models increasingly understand objects, behaviours and relationships in the physical world. Existing 3D data is inconsistent, or structured for human production workflows rather than for AI reasoning. Chewi closes that gap.</p>
+      <div class="problem-copy">
+        <h2>AI understands the world. 3D data doesn't speak its language.</h2>
+        <p class="lede">Foundation models increasingly understand objects, behaviours and relationships in the physical world. Existing 3D data is inconsistent, or structured for human production workflows rather than for AI reasoning. Chewi closes that gap.</p>
+      </div>
+      <figure class="concept">
+        <div class="demo-frame">
+          <video muted loop playsinline autoplay preload="metadata" poster="assets/hand-demo-poster.jpg" aria-label="A closed human hand opens and turns into a labelled hologram: fingertip contacts, knuckle rotations and the palm support surface.">
+            <source src="assets/hand-demo.mp4" type="video/mp4">
+          </video>
+        </div>
+        <figcaption class="caption">A hand, and the structure Chewi would compile from it. Concept render, not pipeline output.</figcaption>
+      </figure>
       <ol class="flow" aria-label="How Chewi sits between 3D data and AI">
         <li><span class="flow-k">3D asset</span><span class="flow-v">Geometry and structure, as it exists in the library today.</span></li>
         <li><span class="flow-k">Chewi</span><span class="flow-v">A semantic correspondence layer, compiled automatically and validated.</span></li>
@@ -93,8 +103,22 @@
     </section>
 
     <section class="layers" id="layers">
-      <h2>From geometry to machine-understandable structure</h2>
-      <p class="intro">Chewi enriches assets with structured information about components, relationships, articulation, physical properties and possible interactions, so AI models can apply what they already know about the world directly to 3D data.</p>
+      <div class="layers-head">
+        <div>
+          <h2>From geometry to machine-understandable structure</h2>
+          <p class="intro">Chewi enriches assets with structured information about components, relationships, articulation, physical properties and possible interactions, so AI models can apply what they already know about the world directly to 3D data.</p>
+          <p class="caption">A hand opening from a fist: contact pads on the fingertips, rotation axes at the knuckles and wrist, the palm as a support surface. Live, drag to orbit.</p>
+        </div>
+        <div class="holo" data-scene="hand" data-mode="loading">
+        <div class="holo-stage">
+          <canvas aria-label="A hologram hand opening from a fist, with fingertip contacts, knuckle rotations, the palm support surface and the wrist axis labelled."></canvas>
+          <svg class="holo-leaders" aria-hidden="true"></svg>
+          <div class="holo-tags" aria-hidden="true"></div>
+          <p class="holo-hint" aria-hidden="true">Drag to orbit</p>
+          <picture class="holo-fallback" hidden><img src="assets/hand-fallback.png" width="1200" height="1000" alt="A hologram hand opening from a fist, with fingertip contacts, knuckle rotations, the palm support surface and the wrist axis labelled."></picture>
+        </div>
+      </div>
+      </div>
       <ul class="layer-grid">
         <li data-tint="grip"><h3>Components &amp; relationships</h3><p>What the elements are and how they relate to each other.</p></li>
         <li><h3>Articulation &amp; structure</h3><p>Joints, hierarchies, axes and movable parts.</p></li>
@@ -134,8 +158,22 @@
     </section>
 
     <section class="standards" id="standards">
-      <h2>Two standards, kept separate</h2>
-      <p class="lede">An asset that artists and agents can edit is not automatically one that can take part in a shared simulation. We think of them as two bars, each with its own evidence.</p>
+      <div class="standards-head">
+        <div class="holo" data-scene="grasp" data-mode="loading">
+        <div class="holo-stage">
+          <canvas aria-label="A hologram hand closing around a cup: fingertip contacts and the cup grip surface light up as they engage; the cup base contact, the palm support and the knuckle and wrist axes are labelled."></canvas>
+          <svg class="holo-leaders" aria-hidden="true"></svg>
+          <div class="holo-tags" aria-hidden="true"></div>
+          <p class="holo-hint" aria-hidden="true">Drag to orbit</p>
+          <picture class="holo-fallback" hidden><img src="assets/grasp-fallback.png" width="1200" height="1000" alt="A hologram hand closing around a cup: fingertip contacts and the cup grip surface light up as they engage; the cup base contact, the palm support and the knuckle and wrist axes are labelled."></picture>
+        </div>
+      </div>
+        <div>
+          <h2>Two standards, kept separate</h2>
+          <p class="lede">An asset that artists and agents can edit is not automatically one that can take part in a shared simulation. We think of them as two bars, each with its own evidence.</p>
+          <p class="caption">A hand and a cup, each a usable asset on its own. The grasp only works when their contact surfaces, scale and articulation agree. Live, drag to orbit.</p>
+        </div>
+      </div>
       <div class="standards-cols">
         <div>
           <h3>Production editability</h3>
@@ -178,11 +216,11 @@
     if (q.has('cdnfail')) window.__chewiForceCdnFail = true;
     // Reduced motion: no autoplaying video, show the native controls instead.
     if (matchMedia('(prefers-reduced-motion: reduce)').matches || window.__chewiForceReduced) {
-      const v = document.querySelector('.demo video');
-      v.removeAttribute('autoplay'); v.autoplay = false; v.pause(); v.controls = true;
+      for (const v of document.querySelectorAll('video[autoplay]')) { v.removeAttribute('autoplay'); v.autoplay = false; v.pause(); v.controls = true; }
     }
   </script>
   <script type="module" src="js/hero.js"></script>
+  <script type="module" src="js/scenes.js"></script>
   <script type="module" src="js/manifest.js"></script>
 </body>
 </html>
