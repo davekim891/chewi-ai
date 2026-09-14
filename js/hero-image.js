@@ -23,12 +23,13 @@ const SVG_NS = 'http://www.w3.org/2000/svg';
 
 const root = document.querySelector('[data-hero]');
 const stage = root && root.querySelector('.holo-stage');
-const state = { ready: false, mode: 'image', revealed: 0, t: 0, running: false, labels: [] };
+const state = { ready: false, mode: 'image', revealed: 0, t: 0, running: false, labels: [], video: null, pose: 1 };
 
 if (stage) {
   const svg = stage.querySelector('.holo-leaders');
   const tagLayer = stage.querySelector('.holo-tags');
   const img = stage.querySelector('img');
+  const video = stage.querySelector('.hero-video');
   const entries = LABELS.map(([kind, id, ax, ay, tx, ty], i) => {
     const tag = document.createElement('div');
     tag.className = 'tag';
@@ -76,7 +77,7 @@ if (stage) {
       if (s >= 1) revealed++;
       const hot = hovered === e ? 1 : 0;
       const pulse = s >= 1 && !REDUCED ? 0.08 * Math.sin(2 * state.t + e.order * 0.7) : 0;
-      const op = Math.min(1, e.ease * (0.92 + pulse) + hot * 0.08);
+      const op = Math.min(1, e.ease * (0.92 + pulse) + hot * 0.08) * state.pose;
       e.tag.style.opacity = op.toFixed(3);
       e.line.setAttribute('opacity', (op * 0.8).toFixed(3));
       e.dot.setAttribute('opacity', op.toFixed(3));
@@ -85,12 +86,23 @@ if (stage) {
     state.revealed = revealed;
   }
 
+  // Turntable clip: the tags belong to this pose, which the loop passes at its start and end.
+  // pose = 1 inside the pose window, eased to 0 while the bike is turning.
+  function poseFactor() {
+    if (!state.video || !video.duration) return 1;
+    const t = video.currentTime, d = video.duration;
+    const tin = +video.dataset.poseIn || 1.2, tout = +video.dataset.poseOut || 1.2, fade = 0.5;
+    const a = Math.max(0, Math.min(1, (tin - t) / fade + 1));     // 1 while t < tin - fade, ramps to 0 at tin
+    const b = Math.max(0, Math.min(1, (t - (d - tout)) / fade + 1)); // 0 until d - tout - fade, 1 at d - tout
+    return Math.max(a, b);
+  }
   let last = 0, raf = 0;
   function frame(now) {
     const dt = last ? Math.min(0.05, (now - last) / 1000) : 0;
     last = now; state.t += dt;
+    state.pose = poseFactor();
     paint();
-    if (state.revealed < entries.length || !REDUCED) raf = requestAnimationFrame(frame); else state.running = false;
+    if (state.revealed < entries.length || !REDUCED || state.video) raf = requestAnimationFrame(frame); else state.running = false;
   }
   function start() { if (state.running) return; state.running = true; last = 0; raf = requestAnimationFrame(frame); }
   function stop() { if (!state.running) return; cancelAnimationFrame(raf); state.running = false; }
@@ -124,11 +136,22 @@ if (stage) {
     if (REDUCED) state.t = 20;
     layout(); paint();
     start();
+    // optional turntable clip (assets/hero-bike.mp4): if it exists and motion is allowed, it plays under the tags
+    if (video && !REDUCED && video.dataset.clip) {
+      video.addEventListener('canplay', () => {
+        state.video = { src: video.currentSrc, duration: video.duration };
+        stage.classList.add('has-video');
+        root.dataset.mode = 'video'; document.documentElement.dataset.heroState = 'video';
+        video.play().catch(() => {});
+      }, { once: true });
+      video.addEventListener('error', () => { video.remove(); }, { once: true });
+      video.src = video.dataset.clip; video.removeAttribute('data-clip');
+    }
   };
   if (img.complete) ready(); else { img.addEventListener('load', ready, { once: true }); img.addEventListener('error', ready, { once: true }); }
 
   window.__chewiHero = {
-    status() { layout(); paint(); return { ...state, labels: state.labels.map((l) => ({ ...l })), canvas: { w: size.w, h: size.h }, hovered: hovered ? hovered.id : null }; },
+    status() { layout(); paint(); return { ...state, labels: state.labels.map((l) => ({ ...l })), canvas: { w: size.w, h: size.h }, hovered: hovered ? hovered.id : null, videoTime: state.video ? video.currentTime : null }; },
     setTime(s) { state.t = s; layout(); paint(); },
     renderOnce() { layout(); paint(); },
   };

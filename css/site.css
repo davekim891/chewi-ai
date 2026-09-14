@@ -112,6 +112,13 @@ p { margin: 0; }
   -webkit-mask-image: radial-gradient(ellipse 62% 60% at 50% 52%, #000 58%, transparent 100%);
   mask-image: radial-gradient(ellipse 62% 60% at 50% 52%, #000 58%, transparent 100%);
 }
+.hero-image .hero-video {
+  position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; display: block;
+  opacity: 0; transition: opacity 700ms var(--ease-out);
+  -webkit-mask-image: radial-gradient(ellipse 62% 60% at 50% 52%, #000 58%, transparent 100%);
+  mask-image: radial-gradient(ellipse 62% 60% at 50% 52%, #000 58%, transparent 100%);
+}
+.hero-image.has-video .hero-video { opacity: 1; }
 .hero-image .holo-leaders circle { filter: drop-shadow(0 0 3px currentColor); }
 .hero-image .tag { opacity: 0; }
 .hero-image.is-hover { cursor: pointer; }
