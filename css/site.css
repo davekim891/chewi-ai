@@ -241,6 +241,7 @@ section, footer { padding: 96px var(--gutter); }
 /* ---- manifest --------------------------------------------------------- */
 
 .manifest-section {
+  padding-top: 24px;
   display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
   gap: clamp(24px, 4vw, 64px); align-items: start;
 }
