@@ -1,0 +1,33 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>GLB preview</title>
+<!-- Renders a GLB two ways for inspection: ?glb=<url>&mode=holo|tex&az=<rad>&el=<rad>. Headless: --screenshot. -->
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/"}}</script>
+<style>html,body{margin:0;background:#0b0d10;overflow:hidden}canvas{display:block}#s{position:absolute;left:0;top:0;color:#0000;font-size:1px}</style>
+<canvas id="c"></canvas><pre id="s"></pre>
+<script type="module">
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+const q = new URLSearchParams(location.search);
+const canvas = document.getElementById('c'), W = innerWidth, H = innerHeight;
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true }); renderer.setSize(W, H); renderer.setClearColor(0x0b0d10, 1);
+const scene = new THREE.Scene(); const camera = new THREE.PerspectiveCamera(34, W / H, 0.01, 100);
+scene.add(new THREE.AmbientLight(0xffffff, 1.2)); const dl = new THREE.DirectionalLight(0xffffff, 1.5); dl.position.set(2, 3, 4); scene.add(dl);
+const holo = (hex) => new THREE.ShaderMaterial({ uniforms: { uColor: { value: new THREE.Color(hex) } }, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide,
+  vertexShader: `varying vec3 vN; varying vec3 vV; void main(){ vN = normalize(normalMatrix*normal); vec4 mv = modelViewMatrix*vec4(position,1.0); vV = normalize(-mv.xyz); gl_Position = projectionMatrix*mv; }`,
+  fragmentShader: `uniform vec3 uColor; varying vec3 vN; varying vec3 vV; void main(){ float f = pow(1.0-abs(dot(normalize(vN),normalize(vV))),2.0); float a = 0.12 + 0.88*f; gl_FragColor = vec4(mix(uColor, vec3(1.0), f*0.5)*a, a); }` });
+const status = (o) => { document.getElementById('s').textContent = JSON.stringify(o); document.documentElement.dataset.state = o.state; };
+try {
+  const gltf = await new GLTFLoader().loadAsync(q.get('glb'));
+  const obj = gltf.scene;
+  const box = new THREE.Box3().setFromObject(obj); const size = box.getSize(new THREE.Vector3()); const center = box.getCenter(new THREE.Vector3());
+  obj.position.sub(center); scene.add(obj);
+  let tris = 0, meshes = 0;
+  obj.traverse((m) => { if (m.isMesh) { meshes++; tris += (m.geometry.index ? m.geometry.index.count : m.geometry.attributes.position.count) / 3; if (q.get('mode') === 'holo') { m.material = holo(0x7cc0ff); } } });
+  const r = Math.max(size.x, size.y, size.z) * 1.6;
+  const az = +(q.get('az') ?? 0.5), el = +(q.get('el') ?? 0.3);
+  camera.position.set(r * Math.cos(el) * Math.sin(az), r * Math.sin(el), r * Math.cos(el) * Math.cos(az)); camera.lookAt(0, 0, 0);
+  renderer.render(scene, camera);
+  status({ state: 'ready', meshes, tris: Math.round(tris), size: [size.x, size.y, size.z].map((v) => +v.toFixed(3)) });
+} catch (e) { status({ state: 'error', error: String(e) }); }
+</script>

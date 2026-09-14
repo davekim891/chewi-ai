@@ -43,6 +43,7 @@ export function createScene(opts) {
   const svg = stage.querySelector('.holo-leaders');
   const fallbackEl = stage.querySelector('.holo-fallback');
   const hint = stage.querySelector('.holo-hint');
+  if (opts.fallbackSrc && fallbackEl) { const im = fallbackEl.querySelector('img'); if (im && !im.dataset.src && !im.getAttribute('src')) im.dataset.src = opts.fallbackSrc; }
   const cam = Object.assign({ target: [0, 0, 0], radius: 2.6, fov: 34, az0: 0.38, el0: 0.35, orbitPeriod: 40, bobPeriod: 13, bobAmp: 0.08, elMin: 0.08, elMax: 0.62 }, opts.camera || {});
   const reveal = Object.assign({ start: 0.6, step: 0.6, dur: 0.45 }, opts.reveal || {});
   const STATIC_T = opts.staticT ?? 40;
@@ -72,13 +73,15 @@ export function createScene(opts) {
       if (img) { img.src = img.dataset.src; img.removeAttribute('data-src'); } // only fetched when actually needed
       fallbackEl.hidden = false;
     }
+    if (hint) hint.hidden = true;
   }
 
   async function boot() {
     if (window.__chewiForceNoWebGL || !hasWebGL()) return fallback('webgl unavailable');
-    let mods;
+    let mods, loaded;
     try { mods = await loadThree(); } catch (e) { return fallback(e); }
-    try { init(mods); } catch (e) { return fallback(e); }
+    if (opts.load) { try { loaded = await withTimeout(opts.load(mods), 20000, 'scene asset load'); } catch (e) { return fallback(e); } }
+    try { init(mods, loaded); } catch (e) { return fallback(e); }
   }
 
   // ---- helpers handed to the scene builder --------------------------------
@@ -148,7 +151,7 @@ export function createScene(opts) {
     }
   }
 
-  function init(mods) {
+  function init(mods, loaded) {
     THREE = mods.THREE;
     TARGET = new THREE.Vector3(...cam.target);
     vTmp = new THREE.Vector3(); nTmp = new THREE.Vector3(); dTmp = new THREE.Vector3();
@@ -161,7 +164,7 @@ export function createScene(opts) {
     raycaster = new THREE.Raycaster(); ndc = new THREE.Vector2();
 
     const ctx = { THREE, scene, holo, lines: (arr, o) => lines(arr, o, mods), tubeMesh, groundGlow, grid, patchGeometry, COLORS, state };
-    const built = opts.build(ctx);
+    const built = opts.build(ctx, loaded);
     animate = built.animate || null;
 
     entries = built.patches.map((p, i) => {
@@ -200,9 +203,12 @@ export function createScene(opts) {
       });
       root.addEventListener('pointerleave', () => { yawT = 0; pitchT = 0; setHover(null); });
     }
+    let downX = 0, downY = 0, moved = false;
     stage.addEventListener('pointerdown', (ev) => {
       if (ev.pointerType === 'mouse' && ev.button !== 0) return;
       if (dragging) return;
+      downX = ev.clientX; downY = ev.clientY; moved = false;
+      if (COARSE_MQ.matches) hoverAt(ev); // a tap has no hover: resolve the surface under the finger
       activePointer = ev.pointerId;
       dragging = true; interacted = true; yawT = 0; pitchT = 0; dragVelYaw = 0; dragVelPitch = 0;
       lastPX = ev.clientX; lastPY = ev.clientY; lastPT = performance.now();
@@ -215,6 +221,7 @@ export function createScene(opts) {
         if (ev.pointerId !== activePointer) return;
         const now = performance.now();
         const dtp = Math.max(1, now - lastPT) / 1000;
+        if (Math.hypot(ev.clientX - downX, ev.clientY - downY) > 5) moved = true;
         const dYaw = (ev.clientX - lastPX) * 0.005, dPitch = -(ev.clientY - lastPY) * 0.003;
         dragYaw += dYaw;
         dragPitch = clamp(dragPitch + dPitch, -0.25, 0.30);
@@ -232,7 +239,11 @@ export function createScene(opts) {
       stage.classList.remove('is-dragging');
       try { stage.releasePointerCapture(ev.pointerId); } catch {}
     };
-    stage.addEventListener('pointerup', endDrag);
+    stage.addEventListener('pointerup', (ev) => {
+      const wasActive = dragging && ev.pointerId === activePointer;
+      endDrag(ev);
+      if (wasActive && !moved && opts.onSelect && hovered) opts.onSelect(hovered.p.id);
+    });
     window.addEventListener('pointerup', endDrag);
     stage.addEventListener('pointercancel', (ev) => { if (ev.pointerId === activePointer) { dragVelYaw = 0; dragVelPitch = 0; } endDrag(ev); });
     stage.addEventListener('lostpointercapture', endDrag);

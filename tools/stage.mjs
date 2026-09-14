@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const out = resolve(process.argv[2] || '_site');
-const PUBLIC = ['index.html', 'CNAME', 'css', 'fonts', 'assets', 'js/holo.js', 'js/hero-image.js', 'js/bike.js', 'js/manifest.js', 'js/hand.js', 'js/scenes.js', 'js/colors.js', 'js/grasp-layout.js'];
+const PUBLIC = ['index.html', 'CNAME', 'css', 'fonts', 'assets', 'js/holo.js', 'js/hero-mesh.js', 'js/bike.js', 'js/manifest.js', 'js/hand.js', 'js/scenes.js', 'js/colors.js', 'js/grasp-layout.js'];
 const EXCLUDE = ['assets/og.svg', 'assets/hero-fallback.svg'];
 
 rmSync(out, { recursive: true, force: true });

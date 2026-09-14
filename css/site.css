@@ -122,6 +122,7 @@ p { margin: 0; }
 .hero-image .holo-leaders circle { filter: drop-shadow(0 0 3px currentColor); }
 .hero-image .tag { opacity: 0; }
 .hero-image.is-hover { cursor: pointer; }
+.hero .holo-stage { max-height: calc(100dvh - var(--top) - 32px); }
 .hero-image { perspective: 1400px; }
 .hero-plate { position: absolute; inset: 0; transform-style: preserve-3d; will-change: transform; transition: transform 120ms linear; }
 .hero-image .holo-tags { pointer-events: none; }

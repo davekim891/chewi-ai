@@ -11,7 +11,7 @@
   const scene = new URLSearchParams(location.search).get('scene') || 'hero';
   const attr = scene === 'hero' ? 'data-hero' : `data-scene="${scene}"`;
   document.getElementById('mount').innerHTML = `<div class="holo" ${attr} data-mode="loading"><div class="holo-stage"><canvas></canvas><svg class="holo-leaders" aria-hidden="true"></svg><div class="holo-tags" aria-hidden="true"></div></div></div>`;
-  await import(scene === 'hero' ? '../js/hero.js' : '../js/scenes.js');
+  await import(scene === 'hero' ? '../js/hero-mesh.js' : '../js/scenes.js');
   // status readout for --dump-dom probes
   const pre = document.createElement('pre'); pre.id = 'status'; pre.style.cssText = 'position:absolute;left:0;top:0;color:#0000;font-size:1px;margin:0';
   document.body.appendChild(pre);

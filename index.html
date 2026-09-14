@@ -15,7 +15,7 @@
   <meta name="twitter:card" content="summary_large_image">
   <link rel="preload" href="fonts/space-grotesk-latin-700.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="fonts/space-grotesk-latin.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="preload" href="assets/hero-bike.jpg" as="image" fetchpriority="high">
+  <link rel="preload" href="assets/bike.glb" as="fetch" crossorigin>
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
   <link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js">
   <script type="importmap">
@@ -44,12 +44,12 @@
         </a>
       </div>
 
-      <div class="holo-stage hero-image">
-        <img src="assets/hero-bike.jpg" width="1792" height="1008" fetchpriority="high" decoding="async" alt="A hologram bicycle with its compiled action surfaces highlighted: two grips, the saddle, two pedals, both tire contact bands, the crank, the front hub and the headset.">
-        <video class="hero-video" muted loop playsinline preload="auto" data-clip="assets/hero-bike.mp4" data-pose-in="1.2" data-pose-out="1.2" aria-hidden="true"></video>
+      <div class="holo-stage">
+        <canvas aria-label="A hologram bicycle reconstructed from the approved render, rotating slowly, with its compiled action surfaces labelled: two grips, the saddle, two pedals, both tire contact bands, the crank, the front hub and the headset."></canvas>
         <svg class="holo-leaders" aria-hidden="true"></svg>
-        <div class="holo-tags"></div>
-        <p class="holo-hint" aria-hidden="true">Tap a surface</p>
+        <div class="holo-tags" aria-hidden="true"></div>
+        <p class="holo-hint" aria-hidden="true">Drag to orbit, click a surface</p>
+        <picture class="holo-fallback" hidden><img data-src="assets/hero-bike.jpg" src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==" width="1792" height="1008" alt="A hologram bicycle with its compiled action surfaces highlighted: two grips, the saddle, two pedals, both tire contact bands, the crank, the front hub and the headset."></picture>
         <aside class="hero-detail" hidden aria-live="polite">
           <button class="hero-detail-close" type="button" aria-label="Close">&times;</button>
           <p class="hero-detail-kind"><span class="tag-kind"></span><span class="tag-id"></span></p>
@@ -216,7 +216,7 @@
       for (const v of document.querySelectorAll('video[autoplay]')) { v.removeAttribute('autoplay'); v.autoplay = false; v.pause(); v.controls = true; }
     }
   </script>
-  <script type="module" src="js/hero-image.js"></script>
+  <script type="module" src="js/hero-mesh.js"></script>
   <script type="module" src="js/scenes.js"></script>
   <script type="module" src="js/manifest.js"></script>
 </body>

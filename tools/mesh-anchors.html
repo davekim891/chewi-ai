@@ -1,0 +1,68 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Mesh anchors</title>
+<!-- Reads the coloured action surfaces off a reconstructed bicycle mesh: samples each vertex's base colour
+     from the texture, classifies by hue, clusters in space, and reports the clusters as JSON in #s.
+     ?glb=<url>  Headless: --dump-dom and read <pre id="s">. -->
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/"}}</script>
+<style>html,body{margin:0;background:#0b0d10;color:#ccc;font:12px monospace}#s{white-space:pre-wrap}</style>
+<pre id="s">loading</pre>
+<script type="module">
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+const q = new URLSearchParams(location.search);
+const out = (o) => { document.getElementById('s').textContent = JSON.stringify(o); document.documentElement.dataset.state = o.state; };
+function classify(r, g, b) {
+  const max = Math.max(r, g, b), min = Math.min(r, g, b), sat = max ? (max - min) / max : 0;
+  if (max < 0.28 || sat < 0.35) return null;                 // dark or grey: the wire body
+  const h = (() => { const d = max - min; let hh; if (max === r) hh = ((g - b) / d) % 6; else if (max === g) hh = (b - r) / d + 2; else hh = (r - g) / d + 4; return ((hh * 60) + 360) % 360; })();
+  if (h >= 95 && h <= 160 && max > 0.4) return 'CONTACT';      // green
+  if (h >= 170 && h <= 200 && max > 0.4) return 'GRIP';         // cyan
+  if (h >= 250 && h <= 290) return 'SUPPORT';                   // violet
+  if (h >= 25 && h <= 55 && max > 0.45) return 'ROTATION';      // amber
+  return null;
+}
+try {
+  const gltf = await new GLTFLoader().loadAsync(q.get('glb'));
+  const obj = gltf.scene; obj.updateMatrixWorld(true);
+  const box = new THREE.Box3().setFromObject(obj); const size = box.getSize(new THREE.Vector3()); const center = box.getCenter(new THREE.Vector3());
+  const points = []; let verts = 0, textured = 0;
+  const cache = new Map();
+  const readTex = (tex) => {
+    if (cache.has(tex)) return cache.get(tex);
+    const im = tex.image; const c = document.createElement('canvas'); c.width = im.width; c.height = im.height;
+    const g = c.getContext('2d'); g.drawImage(im, 0, 0); const d = { data: g.getImageData(0, 0, c.width, c.height).data, w: c.width, h: c.height, flipY: tex.flipY };
+    cache.set(tex, d); return d;
+  };
+  obj.traverse((m) => {
+    if (!m.isMesh) return;
+    const geo = m.geometry, pos = geo.attributes.position, uv = geo.attributes.uv, col = geo.attributes.color;
+    const tex = m.material && m.material.map;
+    const td = tex && tex.image ? readTex(tex) : null;
+    if (td) textured++;
+    const v = new THREE.Vector3();
+    for (let i = 0; i < pos.count; i += 2) {
+      verts++;
+      let r, g, b;
+      if (td && uv) {
+        let u = uv.getX(i) % 1, w = uv.getY(i) % 1; if (u < 0) u += 1; if (w < 0) w += 1;
+        const px = Math.min(td.w - 1, Math.floor(u * td.w)), py = Math.min(td.h - 1, Math.floor((td.flipY ? 1 - w : w) * td.h));
+        const k = (py * td.w + px) * 4; r = td.data[k] / 255; g = td.data[k + 1] / 255; b = td.data[k + 2] / 255;
+      } else if (col) { r = col.getX(i); g = col.getY(i); b = col.getZ(i); } else continue;
+      const kind = classify(r, g, b); if (!kind) continue;
+      v.fromBufferAttribute(pos, i).applyMatrix4(m.matrixWorld).sub(center);
+      points.push({ kind, x: v.x, y: v.y, z: v.z });
+    }
+  });
+  // greedy spatial clustering per kind
+  const R = Math.max(size.x, size.y, size.z) * 0.06;
+  const clusters = [];
+  for (const p of points) {
+    let c = clusters.find((k) => k.kind === p.kind && Math.hypot(k.cx - p.x, k.cy - p.y, k.cz - p.z) < R);
+    if (!c) { c = { kind: p.kind, n: 0, sx: 0, sy: 0, sz: 0, cx: p.x, cy: p.y, cz: p.z }; clusters.push(c); }
+    c.n++; c.sx += p.x; c.sy += p.y; c.sz += p.z; c.cx = c.sx / c.n; c.cy = c.sy / c.n; c.cz = c.sz / c.n;
+  }
+  const big = clusters.filter((c) => c.n >= 12).sort((a, b) => b.n - a.n).map((c) => ({ kind: c.kind, n: c.n, c: [c.cx, c.cy, c.cz].map((v) => +v.toFixed(4)) }));
+  out({ state: 'ready', verts, textured, size: [size.x, size.y, size.z].map((v) => +v.toFixed(4)), center: [center.x, center.y, center.z].map((v) => +v.toFixed(4)), coloured: points.length, clusters: big.slice(0, 24) });
+} catch (e) { out({ state: 'error', error: String(e) }); }
+</script>

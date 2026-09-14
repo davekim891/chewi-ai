@@ -1,0 +1,86 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Match view</title>
+<!-- Finds the camera that reproduces the hero render's view of a reconstructed mesh (silhouette IoU search),
+     then projects the render's ten anchor pixels onto the mesh through that camera.
+     ?glb=<url>&img=<url>  Result JSON in #s (camera + anchors in mesh-local, centred coordinates). -->
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/"}}</script>
+<style>html,body{margin:0;background:#0b0d10;color:#ccc;font:12px monospace}#s{white-space:pre-wrap}canvas{display:block}</style>
+<pre id="s">loading</pre>
+<script type="module">
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+const q = new URLSearchParams(location.search);
+const out = (o) => { document.getElementById('s').textContent = JSON.stringify(o); document.documentElement.dataset.state = o.state; };
+const IMG_W = 1792, IMG_H = 1008, W = 448, H = 252, FOV = 34;
+const ANCHORS = [['CONTACT','tire_r',512,722],['CONTACT','tire_f',1168,858],['ROTATION','crank',742,612],['CONTACT','pedal_l',665,520],['CONTACT','pedal_r',856,702],['SUPPORT','saddle',655,160],['GRIP','grip_l',1218,148],['GRIP','grip_r',948,160],['ROTATION','hub_f',1152,615],['HINGE','headset',1077,276]];
+try {
+  // reference silhouette from the render
+  const im = new Image(); im.src = q.get('img') || '../assets/hero-bike.jpg'; await im.decode();
+  const rc = document.createElement('canvas'); rc.width = W; rc.height = H; const rg = rc.getContext('2d'); rg.drawImage(im, 0, 0, W, H);
+  const rd = rg.getImageData(0, 0, W, H).data; const A = new Uint8Array(W * H);
+  for (let i = 0; i < W * H; i++) { const r = rd[i * 4], g = rd[i * 4 + 1], b = rd[i * 4 + 2]; A[i] = (0.3 * r + 0.59 * g + 0.11 * b) > 38 ? 1 : 0; }
+  const bbox = (M) => { let x0 = W, y0 = H, x1 = -1, y1 = -1, n = 0; for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) if (M[y * W + x]) { n++; if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; } return { x0, y0, x1, y1, n }; };
+  const bA = bbox(A);
+  // normalised IoU: resample both masks over their own bboxes onto a 64x36 grid
+  const grid = (M, b) => { const G = new Uint8Array(64 * 36); for (let j = 0; j < 36; j++) for (let i = 0; i < 64; i++) { const x = Math.round(b.x0 + (i + 0.5) / 64 * (b.x1 - b.x0)), y = Math.round(b.y0 + (j + 0.5) / 36 * (b.y1 - b.y0)); G[j * 64 + i] = M[y * W + x]; } return G; };
+  const gA = grid(A, bA);
+  const iou = (G) => { let inter = 0, uni = 0; for (let i = 0; i < G.length; i++) { const a = gA[i], b = G[i]; if (a && b) inter++; if (a || b) uni++; } return inter / (uni || 1); };
+
+  const gltf = await new GLTFLoader().loadAsync(q.get('glb'));
+  const obj = gltf.scene; obj.updateMatrixWorld(true);
+  const box = new THREE.Box3().setFromObject(obj); const size = box.getSize(new THREE.Vector3()); const center = box.getCenter(new THREE.Vector3());
+  const holder = new THREE.Group(); holder.add(obj); obj.position.sub(center);
+  const scene = new THREE.Scene(); scene.add(holder); scene.overrideMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
+  const renderer = new THREE.WebGLRenderer({ antialias: false, preserveDrawingBuffer: true }); renderer.setSize(W, H); renderer.setClearColor(0x000000, 1);
+  document.body.appendChild(renderer.domElement);
+  const camera = new THREE.PerspectiveCamera(FOV, W / H, 0.01, 100);
+  const target = new THREE.Vector3(0, 0, 0);
+  const place = (az, el, D) => { camera.position.set(target.x + D * Math.cos(el) * Math.sin(az), target.y + D * Math.sin(el), target.z + D * Math.cos(el) * Math.cos(az)); camera.lookAt(target); camera.updateMatrixWorld(); };
+  const px = new Uint8Array(W * H * 4);
+  const mask = () => { renderer.render(scene, camera); const gl = renderer.getContext(); gl.readPixels(0, 0, W, H, gl.RGBA, gl.UNSIGNED_BYTE, px); const M = new Uint8Array(W * H); for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) M[y * W + x] = px[((H - 1 - y) * W + x) * 4] > 128 ? 1 : 0; return M; };
+  const D0 = Math.max(size.x, size.y, size.z) * 1.8;
+  let best = { s: -1 };
+  for (let el = 0.05; el <= 0.5; el += 0.05) for (let az = -Math.PI; az < Math.PI; az += 0.1) {
+    place(az, el, D0); const M = mask(); const b = bbox(M); if (b.n < 50) continue;
+    const s = iou(grid(M, b));
+    if (s > best.s) best = { s, az, el };
+  }
+  // refine around the best
+  for (let el = best.el - 0.05; el <= best.el + 0.05; el += 0.01) for (let az = best.az - 0.1; az <= best.az + 0.1; az += 0.02) {
+    place(az, el, D0); const M = mask(); const b = bbox(M); if (b.n < 50) continue;
+    const s = iou(grid(M, b)); if (s > best.s) best = { s, az, el };
+  }
+  // now fit distance and target so the projected bbox matches the render's bbox (two passes)
+  let D = D0;
+  for (let pass = 0; pass < 3; pass++) {
+    place(best.az, best.el, D); const b = bbox(mask());
+    const wA = bA.x1 - bA.x0, wB = b.x1 - b.x0; D *= wB / wA;
+    place(best.az, best.el, D); const b2 = bbox(mask());
+    // shift the target in camera-right/up so the centres coincide
+    const dx = ((bA.x0 + bA.x1) / 2 - (b2.x0 + b2.x1) / 2) / W, dy = ((bA.y0 + bA.y1) / 2 - (b2.y0 + b2.y1) / 2) / H;
+    const visH = 2 * D * Math.tan((FOV * Math.PI) / 360), visW = visH * (W / H);
+    const right = new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld, 0), up = new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld, 1);
+    target.addScaledVector(right, -dx * visW).addScaledVector(up, dy * visH);
+  }
+  place(best.az, best.el, D);
+  const M = mask(); const finalIoU = (() => { let inter = 0, uni = 0; for (let i = 0; i < W * H; i++) { if (A[i] && M[i]) inter++; if (A[i] || M[i]) uni++; } return inter / uni; })();
+  // project the anchors: raycast through each pixel; fall back to the nearest vertex to the ray
+  scene.overrideMaterial = null;
+  const ray = new THREE.Raycaster();
+  const meshes = []; obj.traverse((m) => { if (m.isMesh) meshes.push(m); });
+  const anchors = ANCHORS.map(([kind, id, ax, ay]) => {
+    ray.setFromCamera(new THREE.Vector2((ax / IMG_W) * 2 - 1, -(ay / IMG_H) * 2 + 1), camera);
+    const hit = ray.intersectObjects(meshes, false)[0];
+    let p, how = 'hit';
+    if (hit) p = holder.worldToLocal(hit.point.clone());
+    else {
+      how = 'nearest'; let bestD = Infinity; const v = new THREE.Vector3();
+      for (const m of meshes) { const pos = m.geometry.attributes.position; for (let i = 0; i < pos.count; i += 3) { v.fromBufferAttribute(pos, i).applyMatrix4(m.matrixWorld); const d = ray.ray.distanceToPoint(v); if (d < bestD) { bestD = d; p = holder.worldToLocal(v.clone()); } } }
+      how += ' ' + bestD.toFixed(3);
+    }
+    return { kind, id, p: [p.x, p.y, p.z].map((v) => +v.toFixed(4)), how };
+  });
+  out({ state: 'ready', size: [size.x, size.y, size.z].map((v) => +v.toFixed(4)), centerOffset: [center.x, center.y, center.z].map((v) => +v.toFixed(4)), camera: { az: +best.az.toFixed(4), el: +best.el.toFixed(4), D: +D.toFixed(4), target: [target.x, target.y, target.z].map((v) => +v.toFixed(4)), fov: FOV, iouNorm: +best.s.toFixed(3), iou: +finalIoU.toFixed(3) }, anchors });
+} catch (e) { out({ state: 'error', error: String(e) }); }
+</script>
