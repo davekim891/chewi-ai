@@ -1,6 +1,6 @@
 # Chewi AI landing page: handoff (2026-09-14, end of session)
 
-Repo: `C:\WEB\chewi-ai` (git, branch `main`, HEAD `74d7568`, tag `3d_v1`). Not pushed anywhere yet.
+Repo: `C:\WEB\chewi-ai`, pushed to https://github.com/davekim891/chewi-ai (PRIVATE, branch `main`, tag `3d_v1`). GitHub Pages is not enabled: on this account it needs a public repo or a paid plan, so the deploy job in Actions will fail until one of those changes; the test job still runs.
 Local preview: launch config `chewi` in `C:\Fable 5.1\.claude\launch.json` (python http.server on 8732 serving this folder). A server on 8732 was still running at handoff (PID may differ; verify with `netstat -ano | findstr 8732`, and check it serves this tree before trusting any capture).
 
 ## What the page is
@@ -53,7 +53,7 @@ Five Opus auditor rounds ran (plan-verified; first KILL for tree churn and publi
 
 ## Open items for Dave
 
-1. Push: create the GitHub repo (public or private: `PRODUCT.md`, `DESIGN.md`, `HANDOFF.md` are in the repo but never in the deploy artifact) and enable Pages. Workflow: `.github/workflows/deploy.yml` (three test steps, then `tools/stage.mjs`, then Pages).
+1. Go live: make the repo public (or upgrade the plan) and enable Pages (Settings, Pages, Source: GitHub Actions). Workflow: `.github/workflows/deploy.yml` (three test steps, then `tools/stage.mjs`, then Pages). `PRODUCT.md`, `DESIGN.md`, `HANDOFF.md` never enter the deploy artifact.
 2. Domain: buy chewi.ai; `CNAME` is in the repo; DNS records to hand over once the repo exists.
 3. GO's read: the measurements table (Sean's V5.1 numbers) and the "Two standards" section (from the team's discussion note).
 4. Decide whether the hero should move to the Meshy geometry (3d_v1) or stay on the TRELLIS reconstruction.
