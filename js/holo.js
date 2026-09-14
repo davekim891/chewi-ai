@@ -8,7 +8,8 @@ const COARSE_MQ = matchMedia('(pointer: coarse)');
 const reducedMotion = () => REDUCED_MQ.matches || !!window.__chewiForceReduced;
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
-export const COLORS = { CONTACT: '#4ade80', GRIP: '#38d6e0', SUPPORT: '#a78bfa', ROTATION: '#f5b544', HINGE: '#f5b544' };
+import { COLORS } from './colors.js';
+export { COLORS };
 
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const smoothstep = (a, b, x) => { const t = clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
@@ -66,7 +67,11 @@ export function createScene(opts) {
     if (renderer) { try { renderer.setAnimationLoop(null); } catch {} }
     setMode('fallback');
     canvas.hidden = true; tagLayer.hidden = true; svg.hidden = true;
-    if (fallbackEl) fallbackEl.hidden = false;
+    if (fallbackEl) {
+      const img = fallbackEl.querySelector('img[data-src]');
+      if (img) { img.src = img.dataset.src; img.removeAttribute('data-src'); } // only fetched when actually needed
+      fallbackEl.hidden = false;
+    }
   }
 
   async function boot() {
@@ -310,6 +315,7 @@ export function createScene(opts) {
     camera.updateMatrixWorld();
     const rects = entries.map((e) => {
       e.anchor.getWorldPosition(vTmp);
+      const world = [vTmp.x, vTmp.y, vTmp.z];
       let facing = 1;
       if (e.p.facing === 'signed') {
         nTmp.set(...e.p.normal).transformDirection(e.anchor.parent.matrixWorld);
@@ -323,7 +329,7 @@ export function createScene(opts) {
       const tw = e.tag.offsetWidth || 80, th = e.tag.offsetHeight || 34;
       const x = clamp(e.p.offset[0] < 0 ? ax + e.p.offset[0] - tw : ax + e.p.offset[0], 6, w - tw - 6);
       const y = clamp(e.p.offset[1] < 0 ? ay + e.p.offset[1] - th : ay + e.p.offset[1], 6, h - th - 6);
-      return { e, ax, ay, op, x, y, w: tw, h: th };
+      return { e, ax, ay, op, x, y, w: tw, h: th, world };
     });
     separate(rects, w, h);
     const labels = [];
@@ -337,7 +343,7 @@ export function createScene(opts) {
       e.line.setAttribute('x1', r.ax.toFixed(1)); e.line.setAttribute('y1', r.ay.toFixed(1));
       e.line.setAttribute('x2', cx.toFixed(1)); e.line.setAttribute('y2', cy.toFixed(1));
       e.line.setAttribute('opacity', (r.op * 0.7).toFixed(3));
-      labels[i] = { name: e.p.id, kind: e.p.kind, x: r.ax, y: r.ay, tagX: tx, tagY: ty, tagW: r.w, tagH: r.h, visible: r.op > 0.05, opacity: r.op };
+      labels[i] = { name: e.p.id, kind: e.p.kind, x: r.ax, y: r.ay, tagX: tx, tagY: ty, tagW: r.w, tagH: r.h, visible: r.op > 0.05, opacity: r.op, world: r.world };
     });
     state.labels = labels;
   }

@@ -4,7 +4,7 @@ import { buildFrame, buildCrank, buildPedal, PATCHES, REVEAL_ORDER, J, pedalOffs
 
 const root = document.querySelector('[data-hero]');
 
-const api = createScene({
+const api = root && createScene({
   root,
   name: 'hero',
   camera: { target: [0.52, 0.42, 0], radius: 2.6, fov: 34, az0: 0.38, el0: 0.35, orbitPeriod: 40, bobPeriod: 13, bobAmp: 0.08 },

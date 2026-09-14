@@ -1,6 +1,7 @@
 // scenes.js: the two hand scenes (a hand opening from a fist; a hand grasping a cup), on the shared engine.
 import { createScene } from './holo.js';
-import { buildHand, FINGERS, THUMB, roundedRect } from './hand.js';
+import { buildHand, roundedRect } from './hand.js';
+import { CUP, HAND_MATRIX, HAND_POS, THUMB_ROT, SPREAD, OPEN_CURL, TIP_R, solveGrasp } from './grasp-layout.js';
 
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const smooth = (a, b, x) => { const t = clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
@@ -64,58 +65,60 @@ if (handRoot) createScene({
 });
 
 // ---- Scene 2: a hand grasping a cup ------------------------------------------
+// Layout and finger curls come from grasp-layout.js, which js/grasp.test.mjs checks with the same math.
 const graspRoot = document.querySelector('[data-scene="grasp"]');
 if (graspRoot) createScene({
   root: graspRoot, name: 'grasp',
-  camera: { target: [-0.01, 0.06, -0.015], radius: 0.56, fov: 30, az0: -0.45, el0: 0.3, orbitPeriod: 48, bobPeriod: 11, bobAmp: 0.05, elMin: 0.0, elMax: 0.6 },
+  camera: { target: [-0.02, 0.055, 0.0], radius: 0.5, fov: 30, az0: 0.7, el0: 0.3, orbitPeriod: 48, bobPeriod: 11, bobAmp: 0.05, elMin: 0.0, elMax: 0.6 },
   staticT: 48,
   reveal: { start: 0.8, step: 0.5, dur: 0.45 },
   build(ctx) {
-    const { THREE, scene, holo, grid, groundGlow, COLORS } = ctx;
+    const { THREE, scene, holo, grid, groundGlow } = ctx;
     const mat = holo(HAND_COLOR, 0.11, 2.2, 1.1);
     const cupMat = holo(0x9fd3ff, 0.10, 2.2, 1.0);
     grid(scene, 0, 0, 1.2, 12, 0x4da3ff, 0.06);
 
-    // cup: open cylinder with a base and a handle, standing on the floor (y=0), axis +y
+    // cup: open cylinder with a base and a handle, standing on the floor (y=0), axis +y, at the origin
     const cup = new THREE.Group();
-    const R = 0.042, H = 0.105;
+    const { R, H } = CUP;
     const body = new THREE.Mesh(new THREE.CylinderGeometry(R, R * 0.92, H, 40, 1, true), holo(0x9fd3ff, 0.10, 2.2, 1.0, THREE.DoubleSide)); body.position.y = H / 2; cup.add(body);
     const base = new THREE.Mesh(new THREE.CircleGeometry(R * 0.92, 40), cupMat); base.rotation.x = -Math.PI / 2; base.position.y = 0.004; cup.add(base);
     const rim = new THREE.Mesh(new THREE.TorusGeometry(R, 0.0035, 8, 48), cupMat); rim.rotation.x = Math.PI / 2; rim.position.y = H; cup.add(rim);
-    const handle = new THREE.Mesh(new THREE.TorusGeometry(0.026, 0.006, 10, 32, Math.PI), cupMat); handle.position.set(-R - 0.004, H * 0.52, 0); handle.rotation.z = Math.PI / 2; cup.add(handle);
+    const handle = new THREE.Mesh(new THREE.TorusGeometry(0.026, 0.006, 10, 32, Math.PI), cupMat); handle.position.set(R + 0.004, H * 0.52, 0); handle.rotation.z = -Math.PI / 2; cup.add(handle);
     scene.add(cup);
     const glow = groundGlow(scene, 0, 0, '74,222,128', 0.26, 0.26);
 
-    // hand behind the cup, palm toward the camera, fingers wrapping around the cup's right side
-    const rig = buildHand(ctx, mat, { jointMat: holo(0x9fd3ff, 0.14, 2.0, 1.0) });
-    rig.hand.rotation.set(0, 0, -Math.PI / 2);      // fingers point +x, thumb points up
-    const HAND_X = -0.006, HAND_Z = -(R + 0.016);   // palm just behind the cup, finger bases at the cup's right edge
-    rig.hand.position.set(HAND_X, H * 0.5, HAND_Z);
+    // the hand: left side of the cup, palm toward it, fingers wrapping the back, thumb wrapping the front
+    const rig = buildHand(ctx, mat, { jointMat: holo(0x9fd3ff, 0.14, 2.0, 1.0), thumbRot: THUMB_ROT });
+    const m = HAND_MATRIX;
+    rig.hand.quaternion.setFromRotationMatrix(new THREE.Matrix4().set(m[0], m[3], m[6], 0, m[1], m[4], m[7], 0, m[2], m[5], m[8], 0, 0, 0, 0, 1));
+    rig.hand.position.set(...HAND_POS);
     scene.add(rig.hand);
 
+    const fit = solveGrasp();
     let c = 0;
     const engageTips = () => smooth(0.55, 0.85, c);
     const P = handPatches(ctx, rig, rig.hand, {
-      tipOffset: { index: [30, -50], middle: [40, -20], ring: [40, 20], thumb: [-40, -50] },
-      knuckleOffset: { index: [-50, -40], middle: [-60, 10], ring: [-60, 30] },
-      palmOffset: [-60, 60], wristOffset: [-50, 40],
+      tipOffset: { index: [40, -30], middle: [44, 0], ring: [44, 30], thumb: [-50, -50] },
+      knuckleOffset: { index: [-60, -40], middle: [-60, 10], ring: [-60, 30] },
+      palmOffset: [-60, 40], wristOffset: [-40, 50],
       tipEngage: engageTips, palmEngage: () => 0.4 + 0.6 * c,
     });
-    const cupGrip = { id: 'cup_body', kind: 'GRIP', parentObj: cup, shape: { type: 'cylinder', radius: R + 0.003, length: 0.05 }, position: [0, H * 0.5, 0], anchor: [R + 0.003, H * 0.5, 0.0], facing: 'always', offset: [40, -30], engage: engageTips };
-    const cupHandle = { id: 'cup_handle', kind: 'GRIP', parentObj: cup, shape: { type: 'torusArc', radius: 0.026, tube: 0.009, arc: Math.PI }, position: [-R - 0.004, H * 0.52, 0], rotation: [0, 0, Math.PI / 2], anchor: [-R - 0.03, H * 0.52, 0], facing: 'always', offset: [-70, -10] };
+    const cupGrip = { id: 'cup_body', kind: 'GRIP', parentObj: cup, shape: { type: 'cylinder', radius: R + 0.003, length: 0.05 }, position: [0, H * 0.5, 0], anchor: [0, H * 0.5, R + 0.003], facing: 'always', offset: [40, -20], engage: engageTips };
+    const cupHandle = { id: 'cup_handle', kind: 'GRIP', parentObj: cup, shape: { type: 'torusArc', radius: 0.026, tube: 0.009, arc: Math.PI }, position: [R + 0.004, H * 0.52, 0], rotation: [0, 0, -Math.PI / 2], anchor: [R + 0.03, H * 0.52, 0], facing: 'always', offset: [50, -10] };
     const cupBase = { id: 'cup_base', kind: 'CONTACT', parentObj: cup, shape: { type: 'ring', inner: R * 0.8, outer: R * 0.98, axis: [0, 1, 0] }, position: [0, 0.003, 0], anchor: [0, 0.0, R * 0.9], facing: 'always', offset: [30, 40], onUpdate: (ease, pulse) => { glow.glow.material.opacity = ease * (0.7 + pulse); glow.ring.material.opacity = ease * (0.8 + pulse); } };
-    const patches = [cupBase, cupGrip, cupHandle, P.tip('index'), P.tip('middle'), P.tip('ring'), P.palm, P.knuckle('index'), P.wrist].map((p, i) => ({ ...p, order: i }));
+    const patches = [cupBase, cupGrip, cupHandle, P.tip('index'), P.tip('middle'), P.tip('thumb'), P.palm, P.knuckle('index'), P.wrist].map((p, i) => ({ ...p, order: i }));
 
+    const pose = {};
     return {
       patches,
       animate(t) {
-        // approach and close, hold, release: 8 s cycle
-        const ph = ((t + 4) % 8) / 8; // starts closed, releases, re-grips
-        const grip = ph < 0.35 ? smooth(0.05, 0.35, ph) : ph < 0.7 ? 1 : 1 - smooth(0.7, 0.92, ph);
-        c = grip;
-        rig.setCurl(0.10 + 0.58 * c, 0.5);
-        rig.hand.position.x = HAND_X - 0.035 * (1 - c);
-        rig.hand.position.z = HAND_Z - 0.03 * (1 - c);
+        // approach and close, hold, release: 8 s cycle, starting closed
+        const ph = ((t + 4) % 8) / 8;
+        c = ph < 0.35 ? smooth(0.05, 0.35, ph) : ph < 0.7 ? 1 : 1 - smooth(0.7, 0.92, ph);
+        for (const id of ['index', 'middle', 'ring', 'pinky', 'thumb']) pose[id] = OPEN_CURL + (fit[id].c - OPEN_CURL) * c;
+        rig.setPose(pose, SPREAD);
+        rig.hand.position.x = HAND_POS[0] - 0.035 * (1 - c);
       },
     };
   },

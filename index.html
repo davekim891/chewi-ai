@@ -49,7 +49,7 @@
         <div class="holo-tags" aria-hidden="true"></div>
         <p class="holo-hint" aria-hidden="true">Drag to orbit</p>
         <picture class="holo-fallback" hidden>
-          <img src="assets/hero-fallback.svg" width="1200" height="1000" alt="A wireframe bicycle with its compiled action surfaces labelled: grips, saddle, pedals, tire contact, crank, hub and headset.">
+          <img data-src="assets/hero-fallback.svg" src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==" width="1200" height="1000" alt="A wireframe bicycle with its compiled action surfaces labelled: grips, saddle, pedals, tire contact, crank, hub and headset.">
         </picture>
       </div>
     </section>
@@ -89,9 +89,7 @@
       </div>
       <figure class="concept">
         <div class="demo-frame">
-          <video muted loop playsinline autoplay preload="metadata" poster="assets/hand-demo-poster.jpg" aria-label="A closed human hand opens and turns into a labelled hologram: fingertip contacts, knuckle rotations and the palm support surface.">
-            <source src="assets/hand-demo.mp4" type="video/mp4">
-          </video>
+          <video muted loop playsinline preload="none" poster="assets/hand-demo-poster.jpg" data-lazy-src="assets/hand-demo.mp4" aria-label="A closed human hand opens and turns into a labelled hologram: fingertip contacts, knuckle rotations and the palm support surface."></video>
         </div>
         <figcaption class="caption">A hand, and the structure Chewi would compile from it. Concept render, not pipeline output.</figcaption>
       </figure>
@@ -115,7 +113,7 @@
           <svg class="holo-leaders" aria-hidden="true"></svg>
           <div class="holo-tags" aria-hidden="true"></div>
           <p class="holo-hint" aria-hidden="true">Drag to orbit</p>
-          <picture class="holo-fallback" hidden><img src="assets/hand-fallback.png" width="1200" height="1000" alt="A hologram hand opening from a fist, with fingertip contacts, knuckle rotations, the palm support surface and the wrist axis labelled."></picture>
+          <picture class="holo-fallback" hidden><img data-src="assets/hand-fallback.png" src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==" width="1200" height="1000" alt="A hologram hand opening from a fist, with fingertip contacts, knuckle rotations, the palm support surface and the wrist axis labelled."></picture>
         </div>
       </div>
       </div>
@@ -165,7 +163,7 @@
           <svg class="holo-leaders" aria-hidden="true"></svg>
           <div class="holo-tags" aria-hidden="true"></div>
           <p class="holo-hint" aria-hidden="true">Drag to orbit</p>
-          <picture class="holo-fallback" hidden><img src="assets/grasp-fallback.png" width="1200" height="1000" alt="A hologram hand closing around a cup: fingertip contacts and the cup grip surface light up as they engage; the cup base contact, the palm support and the knuckle and wrist axes are labelled."></picture>
+          <picture class="holo-fallback" hidden><img data-src="assets/grasp-fallback.png" src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==" width="1200" height="1000" alt="A hologram hand closing around a cup: fingertip contacts and the cup grip surface light up as they engage; the cup base contact, the palm support and the knuckle and wrist axes are labelled."></picture>
         </div>
       </div>
         <div>
@@ -218,6 +216,14 @@
     if (matchMedia('(prefers-reduced-motion: reduce)').matches || window.__chewiForceReduced) {
       for (const v of document.querySelectorAll('video[autoplay]')) { v.removeAttribute('autoplay'); v.autoplay = false; v.pause(); v.controls = true; }
     }
+    // Below-the-fold clips load only when their section comes into view.
+    const lazyVideos = document.querySelectorAll('video[data-lazy-src]');
+    const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches || window.__chewiForceReduced;
+    const loadVideo = (v) => { v.src = v.dataset.lazySrc; v.removeAttribute('data-lazy-src'); if (reduced) { v.controls = true; } else { v.autoplay = true; v.play().catch(() => {}); } };
+    if ('IntersectionObserver' in window) {
+      const io = new IntersectionObserver((es) => { for (const e of es) if (e.isIntersecting) { loadVideo(e.target); io.unobserve(e.target); } }, { rootMargin: '200px' });
+      lazyVideos.forEach((v) => io.observe(v));
+    } else lazyVideos.forEach(loadVideo);
   </script>
   <script type="module" src="js/hero.js"></script>
   <script type="module" src="js/scenes.js"></script>

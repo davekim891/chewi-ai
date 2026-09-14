@@ -15,6 +15,6 @@
   // status readout for --dump-dom probes
   const pre = document.createElement('pre'); pre.id = 'status'; pre.style.cssText = 'position:absolute;left:0;top:0;color:#0000;font-size:1px;margin:0';
   document.body.appendChild(pre);
-  const tick = () => { const api = window.__chewiScenes[scene]; if (api) { const s = api.status(); pre.textContent = JSON.stringify({ mode: s.mode, error: s.error, canvas: s.canvas, revealed: s.revealed, labels: s.labels.map((l) => [l.name, Math.round(l.x), Math.round(l.y), +l.opacity.toFixed(2)]) }); } setTimeout(tick, 500); };
+  const tick = () => { const api = window.__chewiScenes[scene]; if (api) { const s = api.status(); pre.textContent = JSON.stringify({ mode: s.mode, error: s.error, canvas: s.canvas, revealed: s.revealed, labels: s.labels.map((l) => [l.name, Math.round(l.x), Math.round(l.y), +l.opacity.toFixed(2), l.world.map((v) => +v.toFixed(4))]) }); } setTimeout(tick, 500); };
   tick();
 </script>

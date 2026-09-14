@@ -22,8 +22,12 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Geometry check
-        run: node js/bike.test.mjs && node js/hand.test.mjs
+      - name: Bicycle geometry check
+        run: node js/bike.test.mjs
+      - name: Hand rig check
+        run: node js/hand.test.mjs
+      - name: Grasp geometry check
+        run: node js/grasp.test.mjs
       - name: Stage public files and verify every reference resolves
         run: node tools/stage.mjs _site
       - name: Upload Pages artifact

@@ -15,7 +15,30 @@ export const THUMB_MAX = [0.55, 1.05];
 export const PALM = { w: 0.086, h: 0.092, t: 0.021, center: [0.008, 0.002, 0] };
 export const WRIST = { r: 0.030, len: 0.06, y: -0.078 };
 
-export function fingerTipLocal(f) { return [0, f.segs[f.segs.length - 1], 0]; }
+export const THUMB_ROT_DEFAULT = [0.35, 0, 0.95];
+
+// ---- pure forward kinematics (matches three.js Euler XYZ and the group hierarchy in buildHand) ----
+function rotX(a) { const c = Math.cos(a), s = Math.sin(a); return [1, 0, 0, 0, c, -s, 0, s, c]; }
+function rotY(a) { const c = Math.cos(a), s = Math.sin(a); return [c, 0, s, 0, 1, 0, -s, 0, c]; }
+function rotZ(a) { const c = Math.cos(a), s = Math.sin(a); return [c, -s, 0, s, c, 0, 0, 0, 1]; }
+function mul(A, B) { const o = new Array(9); for (let r = 0; r < 3; r++) for (let c = 0; c < 3; c++) o[r * 3 + c] = A[r * 3] * B[c] + A[r * 3 + 1] * B[3 + c] + A[r * 3 + 2] * B[6 + c]; return o; }
+function apply(M, v) { return [M[0] * v[0] + M[1] * v[1] + M[2] * v[2], M[3] * v[0] + M[4] * v[1] + M[5] * v[2], M[6] * v[0] + M[7] * v[1] + M[8] * v[2]]; }
+const eulerXYZ = ([x, y, z]) => mul(mul(rotX(x), rotY(y)), rotZ(z));
+
+// Hand-local position of a point `tipOffset` in the last segment's frame, for a finger definition,
+// holder Euler [x,y,z] and per-segment curl angles (radians about the segment's local x).
+export function fingerChainFK(def, holderEuler, angles, tipOffset = [0, 0, 0]) {
+  let R = eulerXYZ(holderEuler);
+  let p = [...def.base];
+  let prevLen = 0;
+  for (let i = 0; i < def.segs.length; i++) {
+    p = p.map((v, k) => v + apply(R, [0, prevLen, 0])[k]);
+    R = mul(R, rotX(angles[i] || 0));
+    prevLen = def.segs[i];
+  }
+  const last = [tipOffset[0], prevLen + tipOffset[1], tipOffset[2]];
+  return p.map((v, k) => v + apply(R, last)[k]);
+}
 
 // Rounded-rectangle outline in the x/y plane, used for the palm body and the palm patch.
 export function roundedRect(w, h, r, n = 6) {
@@ -27,6 +50,7 @@ export function roundedRect(w, h, r, n = 6) {
 
 // Builds the rig. Returns { hand, fingers: {id: {groups, tip}}, thumb, setCurl(c, spreadAmount) }.
 export function buildHand(ctx, mat, opts = {}) {
+  const thumbRot = opts.thumbRot || THUMB_ROT_DEFAULT;
   const { THREE } = ctx;
   const hand = new THREE.Group();
   const jointMat = opts.jointMat || mat;
@@ -66,17 +90,20 @@ export function buildHand(ctx, mat, opts = {}) {
   const fingers = {};
   for (const f of FINGERS) fingers[f.id] = { def: f, ...chain(f, hand) };
   const thumb = { def: THUMB, ...chain(THUMB, hand) };
-  thumb.holder.rotation.set(0.35, 0, 0.95); // points diagonally out from the palm
+  thumb.holder.rotation.set(thumbRot[0], thumbRot[1], thumbRot[2]); // points diagonally out from the palm
 
-  function setCurl(c, spread = 1) {
+  // pose: { index, middle, ring, pinky, thumb } curls in [0,1], plus spread amount.
+  function setPose(pose, spread = 1) {
     for (const f of FINGERS) {
-      const F = fingers[f.id];
+      const F = fingers[f.id], c = pose[f.id] ?? 0;
       F.groups.forEach((g, i) => { g.rotation.x = c * CURL_MAX[i]; });
       F.holder.rotation.z = f.spread * (1 - c) * spread;
     }
-    thumb.groups.forEach((g, i) => { g.rotation.x = c * THUMB_MAX[i]; });
-    thumb.holder.rotation.y = -c * 0.55; // sweeps across the palm as it closes
+    const ct = pose.thumb ?? 0;
+    thumb.groups.forEach((g, i) => { g.rotation.x = ct * THUMB_MAX[i]; });
+    thumb.holder.rotation.y = -ct * 0.55; // sweeps across the palm as it closes
   }
+  function setCurl(c, spread = 1) { setPose({ index: c, middle: c, ring: c, pinky: c, thumb: c }, spread); }
   setCurl(0);
-  return { hand, fingers, thumb, setCurl };
+  return { hand, fingers, thumb, setCurl, setPose };
 }

@@ -24,7 +24,7 @@ The page is a pre-launch placeholder for chewi.ai (domain not yet purchased as o
 
 ## Capabilities and Constraints
 
-- Coming-soon surface only: wordmark, tagline, "Coming soon", one contact action, a short explanation of what Chewi compiles, and one real demo clip.
+- Coming-soon surface: wordmark, tagline, "Coming soon", one contact action, an explanation of what Chewi compiles, one real demo clip, one concept clip captioned as such, and three live hologram scenes (bicycle, hand, hand and cup) built on the page's own demo rigs.
 - Confirmed copy from GO: "CHEWI AI", "The intelligence layer between AI and the 3D world.", "Coming Soon", "Curious? Click Here" (contact intent; final label may be reworded but it must stay one contact action).
 - No email-capture backend (decided by Dave 2026-09-13; mailto instead).
 - No fabricated customers, quotes, metrics or partner logos. The one-sheet's "We're looking for design partners" is the only call to collaboration.
@@ -53,7 +53,7 @@ The page is a pre-launch placeholder for chewi.ai (domain not yet purchased as o
 
 1. Show the compiled structure, do not describe it. The page's proof is a labeled object, live.
 2. One claim, one action. Nothing on the page competes with the tagline and the contact link.
-3. Real output only. Any media shown is actual pipeline output, captioned as such.
+3. Real output, or labelled. Media is either actual pipeline output captioned as such, or a concept render captioned as a concept. The live hologram scenes are the page's own demonstration rigs, never presented as pipeline output.
 4. Credible over loud. The audience is technical; restraint reads as competence.
 5. Cheap to change. Copy lives in one HTML file; the video is a drop-in replacement.
 

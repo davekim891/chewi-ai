@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const out = resolve(process.argv[2] || '_site');
-const PUBLIC = ['index.html', 'CNAME', 'css', 'fonts', 'assets', 'js/holo.js', 'js/hero.js', 'js/bike.js', 'js/manifest.js', 'js/hand.js', 'js/scenes.js'];
+const PUBLIC = ['index.html', 'CNAME', 'css', 'fonts', 'assets', 'js/holo.js', 'js/hero.js', 'js/bike.js', 'js/manifest.js', 'js/hand.js', 'js/scenes.js', 'js/colors.js', 'js/grasp-layout.js'];
 const EXCLUDE = ['assets/og.svg'];
 
 rmSync(out, { recursive: true, force: true });
@@ -17,7 +17,7 @@ for (const p of EXCLUDE) rmSync(join(out, p), { force: true });
 // Every local src/href in index.html must resolve inside the staged tree.
 const html = readFileSync(join(out, 'index.html'), 'utf8');
 const refs = [...html.matchAll(/(?:src|href|poster)="([^"#?]+)/g)].map((m) => m[1])
-  .filter((u) => !/^(https?:|mailto:|\/$)/.test(u));
+  .filter((u) => !/^(https?:|mailto:|data:|\/$)/.test(u));
 const missing = refs.filter((u) => !existsSync(join(out, u)));
 // Every relative import inside the staged modules must resolve too.
 for (const f of readdirSync(join(out, 'js'))) {

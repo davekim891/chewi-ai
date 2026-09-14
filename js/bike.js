@@ -207,13 +207,8 @@ export function buildGrid() {
 // facing: 'signed' fades the far side (grips, pedals); 'always' stays visible.
 // offset: label offset in CSS px from the projected anchor.
 
-export const COLORS = {
-  CONTACT: '#4ade80',
-  GRIP: '#38d6e0',
-  SUPPORT: '#a78bfa',
-  ROTATION: '#f5b544',
-  HINGE: '#f5b544',
-};
+import { COLORS } from './colors.js';
+export { COLORS };
 
 const HEAD_AXIS = norm(sub(J.HTt, J.HTb));
 

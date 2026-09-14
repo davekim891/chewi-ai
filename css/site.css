@@ -121,6 +121,11 @@ p { margin: 0; }
 .tag.is-hot { background: color-mix(in srgb, var(--c) 22%, #0b0d10); box-shadow: 0 0 0 1px var(--c); }
 .tag-kind { font-size: 11px; font-weight: 600; letter-spacing: 0.14em; color: var(--c); }
 .tag-id { font-size: 10px; color: var(--fg-muted); }
+@media (max-width: 599px) {
+  .tag { padding: 3px 6px 4px; gap: 0; }
+  .tag-kind { font-size: 9.5px; letter-spacing: 0.1em; }
+  .tag-id { display: none; }
+}
 
 .holo-fallback { position: absolute; inset: 0; margin: 0; }
 .holo-fallback img { width: 100%; height: 100%; object-fit: contain; display: block; }
@@ -186,7 +191,7 @@ section, footer { padding: 96px var(--gutter); }
 /* ---- section holograms ------------------------------------------------ */
 
 .holo { position: relative; }
-.holo .holo-stage { aspect-ratio: 5 / 4; max-height: 620px; }
+.holo[data-scene] .holo-stage { aspect-ratio: 5 / 4; max-height: 620px; }
 .layers-head, .standards-head {
   display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
   gap: clamp(24px, 4vw, 64px); align-items: center;
@@ -296,7 +301,7 @@ section, footer { padding: 96px var(--gutter); }
   section, footer { padding: 64px var(--gutter); }
   .demo, .close, .manifest-section, .where-list, .where-notes, .standards-cols, .problem, .layers-head, .standards-head { grid-template-columns: minmax(0, 1fr); }
   .standards-head .holo { order: 2; }
-  .holo .holo-stage { aspect-ratio: 4 / 3; }
+  .holo[data-scene] .holo-stage { aspect-ratio: 4 / 3; max-height: none; }
   .flow { grid-template-columns: minmax(0, 1fr); }
   .flow li + li { padding-left: 0; border-left: 0; border-top: 1px solid var(--hairline); }
   .flow li + li::before { left: 0; top: -7px; transform: rotate(135deg); }
