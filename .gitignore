@@ -4,3 +4,5 @@ Thumbs.db
 tmp3d/
 3d/v1/bike-meshy.fbx
 3d/v1/bike-full.glb
+3d/v2/*.fbx
+3d/v2/*.png
