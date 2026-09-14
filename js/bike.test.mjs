@@ -11,6 +11,8 @@ function shapeExtent(s) {
     case 'cylinder': return Math.max(s.radius, s.length / 2);
     case 'sphere': return s.radius * Math.max(...(s.scale || [1, 1, 1]));
     case 'torusArc': return s.tube;
+    case 'box': return Math.max(s.size[0], s.size[2]) / 2;
+    case 'saddle': return 0.15;
     default: return 0;
   }
 }

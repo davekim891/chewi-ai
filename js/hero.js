@@ -2,7 +2,7 @@
 // Loads three.js from the import map (jsdelivr, pinned). Falls back to a static image when
 // WebGL or the CDN is unavailable. Exposes window.__chewiHero for headless verification.
 
-import { buildFrame, buildCrank, buildPedal, buildGrid, PATCHES, REVEAL_ORDER, COLORS, J, pedalOffsets } from './bike.js';
+import { buildFrame, buildCrank, buildPedal, buildGrid, PATCHES, REVEAL_ORDER, COLORS, J, pedalOffsets, TUBES, JOINT_BALLS, WHEEL, saddleOutline, chainPath } from './bike.js';
 
 const REDUCED_MQ = matchMedia('(prefers-reduced-motion: reduce)');
 const COARSE_MQ = matchMedia('(pointer: coarse)');
@@ -19,7 +19,8 @@ const fallbackEl = root.querySelector('.hero-fallback');
 const SVG_NS = 'http://www.w3.org/2000/svg';
 const ORBIT_PERIOD = 40;   // s per revolution
 const BOB_PERIOD = 13;     // s
-const AZ0 = 0.65;          // starting azimuth, a three-quarter front view
+const AZ0 = 0.38;          // starting azimuth: drive side, slightly from the front, like the reference render
+const STATIC_T = 40;       // one full orbit, so the static views sit at AZ0 with the reveal complete
 const EL0 = 0.35;          // base elevation (rad)
 const RADIUS = 2.6;
 const FOV = 34;
@@ -108,9 +109,50 @@ function init(three, LineSegments2, LineMaterial, LineSegmentsGeometry) {
 
   const frameArr = buildFrame(), crankArr = buildCrank(), pedalArr = buildPedal();
 
-  const core = { color: 0xbfe6ff, width: 1.25, opacity: 0.92, blending: THREE.NormalBlending };
-  const halo = { color: 0x3a9bff, width: 6.0, opacity: 0.085, blending: THREE.AdditiveBlending };
-  const thin = { color: 0x9fd3ff, width: 1.0, opacity: 0.8, blending: THREE.NormalBlending };
+  // Line layer: a faint wire over the hologram bodies, so the mesh still reads as data.
+  const core = { color: 0xcfe9ff, width: 1.0, opacity: 0.28, blending: THREE.AdditiveBlending };
+  const halo = { color: 0x3a9bff, width: 9.0, opacity: 0.075, blending: THREE.AdditiveBlending };
+  const thin = { color: 0xbfe0ff, width: 1.0, opacity: 0.55, blending: THREE.AdditiveBlending };
+
+  // Hologram: bright at grazing angles, faint face-on, additive. The look of the reference render.
+  const holo = (hex, base = 0.08, power = 2.4, opacity = 1.0, side = THREE.FrontSide) => new THREE.ShaderMaterial({
+    uniforms: { uColor: { value: new THREE.Color(hex) }, uBase: { value: base }, uPower: { value: power }, uOpacity: { value: opacity } },
+    vertexShader: `varying vec3 vN; varying vec3 vV;
+      void main() { vN = normalize(normalMatrix * normal); vec4 mv = modelViewMatrix * vec4(position, 1.0); vV = normalize(-mv.xyz); gl_Position = projectionMatrix * mv; }`,
+    fragmentShader: `uniform vec3 uColor; uniform float uBase; uniform float uPower; uniform float uOpacity; varying vec3 vN; varying vec3 vV;
+      void main() { float f = pow(1.0 - abs(dot(normalize(vN), normalize(vV))), uPower); float a = (uBase + (1.0 - uBase) * f) * uOpacity;
+        vec3 c = mix(uColor, vec3(1.0), f * 0.5); gl_FragColor = vec4(c * a, a); }`,
+    transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side,
+  });
+  const frameMat = holo(0x7cc0ff, 0.13, 2.0, 1.15);
+  const Y = new THREE.Vector3(0, 1, 0);
+  const tubeMesh = (a, b, r, mat = frameMat) => {
+    const A = new THREE.Vector3(...a), B = new THREE.Vector3(...b), d = B.clone().sub(A);
+    const m = new THREE.Mesh(new THREE.CylinderGeometry(r, r, d.length(), 18, 1, false), mat);
+    m.position.copy(A).add(B).multiplyScalar(0.5);
+    m.quaternion.setFromUnitVectors(Y, d.normalize());
+    return m;
+  };
+  const bodies = new THREE.Group();
+  for (const t of TUBES) bodies.add(tubeMesh(t.a, t.b, t.r));
+  for (const [j, r] of JOINT_BALLS) { const s = new THREE.Mesh(new THREE.SphereGeometry(r, 16, 12), frameMat); s.position.set(...J[j]); bodies.add(s); }
+  for (const axle of [J.RA, J.FA]) {
+    const tire = new THREE.Mesh(new THREE.TorusGeometry(WHEEL.r - WHEEL.tire, WHEEL.tire, 10, 72), frameMat); tire.position.set(...axle); bodies.add(tire);
+    const rim = new THREE.Mesh(new THREE.TorusGeometry(WHEEL.rim, WHEEL.rimTube, 8, 64), frameMat); rim.position.set(...axle); bodies.add(rim);
+    const hub = new THREE.Mesh(new THREE.CylinderGeometry(WHEEL.hub, WHEEL.hub, WHEEL.hubLen, 16), frameMat); hub.position.set(...axle); hub.rotation.x = Math.PI / 2; bodies.add(hub);
+  }
+  { // chain + rear cog
+    const pts = chainPath().map((p) => new THREE.Vector3(...p));
+    const chain = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts, true), 160, 0.005, 6, true), holo(0x8fc8ff, 0.12, 2.0, 0.9));
+    bodies.add(chain);
+    const cog = new THREE.Mesh(new THREE.TorusGeometry(0.03, 0.005, 6, 32), frameMat); cog.position.set(J.RA[0], J.RA[1], 0.036); bodies.add(cog);
+  }
+  { // head tube collar at the bottom, to match the top one carried by the headset patch
+    const collar = new THREE.Mesh(new THREE.TorusGeometry(0.03, 0.006, 8, 32), holo(COLORS.HINGE, 0.35, 1.6, 0.9));
+    collar.position.set(...J.HTb);
+    collar.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), new THREE.Vector3(J.HTt[0] - J.HTb[0], J.HTt[1] - J.HTb[1], 0).normalize());
+    bodies.add(collar);
+  }
 
   function lines(arr, o) {
     const g = new LineSegmentsGeometry().setPositions(arr);
@@ -124,12 +166,45 @@ function init(three, LineSegments2, LineMaterial, LineSegmentsGeometry) {
 
   bike = new THREE.Group();
   scene.add(bike);
-  bike.add(lines(frameArr, halo), lines(frameArr, core));
+  bike.add(bodies, lines(frameArr, halo), lines(frameArr, core));
 
   crank = new THREE.Group();
   crank.position.set(J.BB[0], J.BB[1], J.BB[2]);
   crank.add(lines(crankArr, halo), lines(crankArr, thin));
+  { // chainring + crank arms as bodies
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(0.082, 0.006, 6, 48), frameMat); ring.position.z = 0.036; crank.add(ring);
+    const off0 = pedalOffsets(0);
+    crank.add(tubeMesh([0, 0, -0.05], off0.pedalL, 0.009), tubeMesh([0, 0, 0.05], off0.pedalR, 0.009));
+    const axle = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.12, 12), frameMat); axle.rotation.x = Math.PI / 2; crank.add(axle);
+  }
   bike.add(crank);
+
+  // Ground glow under each tire, revealed with its contact patch.
+  const glowTex = (() => {
+    const c = document.createElement('canvas'); c.width = c.height = 256;
+    const g = c.getContext('2d'); const grd = g.createRadialGradient(128, 128, 0, 128, 128, 128);
+    grd.addColorStop(0, 'rgba(74,222,128,0.55)'); grd.addColorStop(0.45, 'rgba(74,222,128,0.18)'); grd.addColorStop(1, 'rgba(74,222,128,0)');
+    g.fillStyle = grd; g.fillRect(0, 0, 256, 256);
+    const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
+  })();
+  const groundGlows = {};
+  for (const [id, axle] of [['tire_r', J.RA], ['tire_f', J.FA]]) {
+    const m = new THREE.Mesh(new THREE.PlaneGeometry(0.95, 0.55), new THREE.MeshBasicMaterial({ map: glowTex, transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending }));
+    m.rotation.x = -Math.PI / 2; m.position.set(axle[0], 0.002, 0);
+    bike.add(m); groundGlows[id] = m;
+  }
+  const ringGlow = (() => { // soft ring for the ground contact
+    const c = document.createElement('canvas'); c.width = c.height = 256;
+    const g = c.getContext('2d'); g.strokeStyle = 'rgba(74,222,128,0.9)'; g.lineWidth = 6; g.shadowColor = 'rgba(74,222,128,1)'; g.shadowBlur = 14;
+    g.beginPath(); g.ellipse(128, 128, 112, 112, 0, 0, Math.PI * 2); g.stroke();
+    const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
+  })();
+  for (const [id, axle] of [['tire_r', J.RA], ['tire_f', J.FA]]) {
+    const m = new THREE.Mesh(new THREE.PlaneGeometry(0.8, 0.46), new THREE.MeshBasicMaterial({ map: ringGlow, transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending }));
+    m.rotation.x = -Math.PI / 2; m.position.set(axle[0], 0.003, 0);
+    bike.add(m); groundGlows[id + '_ring'] = m;
+  }
+  window.__chewiGlows = groundGlows;
 
   const off = pedalOffsets(0);
   pedalL = new THREE.Group(); pedalL.position.set(...off.pedalL); pedalL.add(lines(pedalArr, thin)); crank.add(pedalL);
@@ -145,9 +220,9 @@ function init(three, LineSegments2, LineMaterial, LineSegmentsGeometry) {
   entries = PATCHES.map((p, i) => {
     const color = new THREE.Color(COLORS[p.kind]);
     const geo = patchGeometry(p.shape);
-    const mat = new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0, depthWrite: false, side: THREE.DoubleSide, blending: THREE.AdditiveBlending });
+    const mat = holo(COLORS[p.kind], 0.45, 1.5, 0, THREE.DoubleSide);
     const mesh = new THREE.Mesh(geo, mat);
-    const outline = new THREE.LineSegments(new THREE.EdgesGeometry(geo, 25), new THREE.LineBasicMaterial({ color, transparent: true, opacity: 0, depthWrite: false }));
+    const outline = new THREE.LineSegments(new THREE.EdgesGeometry(geo, 25), new THREE.LineBasicMaterial({ color, transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending }));
     mesh.add(outline);
     mesh.position.set(...p.position);
     if (p.shape.axis) mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), new THREE.Vector3(...p.shape.axis).normalize());
@@ -217,7 +292,7 @@ function init(three, LineSegments2, LineMaterial, LineSegmentsGeometry) {
       const dtp = Math.max(1, now - lastPT) / 1000;
       const dYaw = (ev.clientX - lastPX) * 0.005, dPitch = -(ev.clientY - lastPY) * 0.003;
       dragYaw += dYaw;
-      dragPitch = clamp(dragPitch + dPitch, -0.25, 0.55);
+      dragPitch = clamp(dragPitch + dPitch, -0.25, 0.30);
       // smoothed release velocity; with the 4/s damping the cap gives at most about 0.4 rad of coast
       dragVelYaw = clamp(dragVelYaw * 0.5 + (dYaw / dtp) * 0.5, -1.6, 1.6);
       dragVelPitch = clamp(dragVelPitch * 0.5 + (dPitch / dtp) * 0.5, -1, 1);
@@ -242,7 +317,7 @@ function init(three, LineSegments2, LineMaterial, LineSegmentsGeometry) {
   resize();
   state.ready = true;
   setMode(reducedMotion() ? 'reduced' : 'webgl');
-  if (reducedMotion()) { state.t = 12; }
+  if (reducedMotion()) { state.t = STATIC_T; }
   renderOnce();
   sync();
 }
@@ -250,8 +325,15 @@ function init(three, LineSegments2, LineMaterial, LineSegmentsGeometry) {
 function patchGeometry(s) {
   switch (s.type) {
     case 'torusArc': return new THREE.TorusGeometry(s.radius, s.tube, 6, 16, s.arc);
-    case 'ring': return new THREE.RingGeometry(s.inner, s.outer, 32);
+    case 'ring': return new THREE.TorusGeometry((s.inner + s.outer) / 2, ((s.outer - s.inner) / 2) * 0.9, 8, 40);
     case 'disc': return new THREE.CircleGeometry(s.radius, 24);
+    case 'box': return new THREE.BoxGeometry(...s.size);
+    case 'saddle': {
+      const shape = new THREE.Shape(saddleOutline(40).map(([x, z]) => new THREE.Vector2(x, z)));
+      const g = new THREE.ExtrudeGeometry(shape, { depth: s.depth, bevelEnabled: true, bevelSize: 0.02, bevelThickness: 0.016, bevelSegments: 5, curveSegments: 16 });
+      g.rotateX(-Math.PI / 2); // outline lies in x/z, extrusion rises along +y
+      return g;
+    }
     case 'cylinder': return new THREE.CylinderGeometry(s.radius, s.radius, s.length, 16, 1, true);
     case 'sphere': {
       const g = new THREE.SphereGeometry(s.radius, 24, 14);
@@ -274,7 +356,7 @@ function update(dt) {
 
   if (!dragging) {
     dragYaw += dragVelYaw * dt;
-    dragPitch = clamp(dragPitch + dragVelPitch * dt, -0.25, 0.55);
+    dragPitch = clamp(dragPitch + dragVelPitch * dt, -0.25, 0.30);
     const damp = Math.exp(-4 * dt);
     dragVelYaw *= damp; dragVelPitch *= damp;
   }
@@ -284,7 +366,7 @@ function update(dt) {
   pedalR.rotation.z = 0.25 * t;
 
   const az = AZ0 + (2 * Math.PI * t) / ORBIT_PERIOD + yaw + dragYaw;
-  const el = clamp(EL0 + 0.08 * Math.sin((2 * Math.PI * t) / BOB_PERIOD) + pitch + dragPitch, 0.06, 1.3);
+  const el = clamp(EL0 + 0.08 * Math.sin((2 * Math.PI * t) / BOB_PERIOD) + pitch + dragPitch, 0.08, 0.62);
   camera.position.set(
     TARGET.x + RADIUS * Math.cos(el) * Math.sin(az),
     TARGET.y + RADIUS * Math.sin(el),
@@ -301,10 +383,14 @@ function update(dt) {
     const pulse = s >= 1 ? 0.12 * Math.sin(2 * t + e.phase) : 0;
     e.ease = ease;
     e.mesh.visible = s > 0;
-    const hot = hovered === e ? 0.3 : 0;
-    e.mesh.material.opacity = ease * (PATCH_BASE + pulse) + hot;
-    e.outline.material.opacity = ease * 0.85 + hot;
+    const hot = hovered === e ? 0.35 : 0;
+    e.mesh.material.uniforms.uOpacity.value = Math.min(1.4, ease * (0.85 + pulse) + hot);
+    e.outline.material.opacity = ease * 0.5 + hot;
     e.mesh.scale.setScalar(0.6 + 0.4 * ease);
+    if (e.p.id === 'tire_r' || e.p.id === 'tire_f') {
+      const g = window.__chewiGlows;
+      if (g) { g[e.p.id].material.opacity = ease * (0.75 + pulse); g[e.p.id + '_ring'].material.opacity = ease * (0.8 + pulse); }
+    }
   }
   state.revealed = revealed;
 }
@@ -432,7 +518,7 @@ function resize() {
 function sync() {
   if (!renderer || state.mode === 'fallback') return;
   const reduced = reducedMotion();
-  if (reduced && state.mode !== 'reduced') { setMode('reduced'); state.t = 12; yaw = pitch = yawT = pitchT = 0; renderOnce(); }
+  if (reduced && state.mode !== 'reduced') { setMode('reduced'); state.t = STATIC_T; yaw = pitch = yawT = pitchT = 0; renderOnce(); }
   else if (!reduced && state.mode === 'reduced') { setMode('webgl'); }
   const shouldRun = !reduced && visible && document.visibilityState === 'visible';
   if (shouldRun !== state.running) {

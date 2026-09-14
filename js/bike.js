@@ -87,37 +87,76 @@ function wheel(out, cx, cy) {
 
 // ---- builders --------------------------------------------------------------
 
+// The frame's tubes, shared by the line builder (tests, static fallback) and the mesh builder (hero).
+export const TUBES = [
+  { part: 'rear_triangle', a: J.RL, b: [J.BB[0], J.BB[1], -0.05], r: 0.011 }, // chainstays
+  { part: 'rear_triangle', a: J.RR, b: [J.BB[0], J.BB[1], 0.05], r: 0.011 },
+  { part: 'rear_triangle', a: J.RL, b: J.ST, r: 0.010 },                      // seatstays
+  { part: 'rear_triangle', a: J.RR, b: J.ST, r: 0.010 },
+  { part: 'main_triangle', a: J.BB, b: J.ST, r: 0.017 },   // seat tube
+  { part: 'main_triangle', a: J.BB, b: J.HTb, r: 0.020 },  // down tube
+  { part: 'main_triangle', a: J.ST, b: J.HTt, r: 0.017 },  // top tube
+  { part: 'head_tube', a: J.HTb, b: J.HTt, r: 0.022 },
+  { part: 'fork', a: J.HTb, b: J.FL, r: 0.012 },
+  { part: 'fork', a: J.HTb, b: J.FR, r: 0.012 },
+  { part: 'seat_post', a: J.ST, b: J.SD, r: 0.012 },
+  { part: 'stem', a: J.HTt, b: J.BAR, r: 0.012 },
+  { part: 'bar_l', a: J.BAR, b: J.GL, r: 0.011 },
+  { part: 'bar_r', a: J.BAR, b: J.GR, r: 0.011 },
+];
+// Joints that get a small sphere so tubes meet cleanly.
+export const JOINT_BALLS = [['ST', 0.018], ['HTb', 0.023], ['HTt', 0.023], ['BB', 0.03], ['BAR', 0.013]];
+
+export const WHEEL = { r: R_WHEEL, tire: 0.013, rim: 0.30, rimTube: 0.005, hub: 0.035, hubLen: 0.08 };
+
+// Saddle outline in the x/z plane (metres, relative to the saddle centre): a teardrop, nose forward (+x).
+export function saddleOutline(n = 36) {
+  const pts = [];
+  for (let i = 0; i < n; i++) {
+    const t = (i / n) * Math.PI * 2;
+    const u = (Math.cos(t) + 1) / 2;                 // 1 at the rear (-x side), 0 at the nose
+    const x = -0.14 + 0.28 * (1 - u);
+    const w = 0.075 * Math.sqrt(Math.max(0, 1 - (1 - u) ** 2.2)) * (0.3 + 0.7 * u);
+    pts.push([x, Math.sin(t) >= 0 ? w : -w]);
+  }
+  return pts;
+}
+
+// Chain loop around the chainring (at the bottom bracket) and the rear cog, frame coordinates.
+export function chainPath(n = 24) {
+  const c1 = J.BB, r1 = 0.085, c2 = J.RA, r2 = 0.035, z = 0.036;
+  const dx = c2[0] - c1[0], dy = c2[1] - c1[1];
+  const L = Math.hypot(dx, dy), th = Math.atan2(dy, dx), al = Math.acos((r1 - r2) / L);
+  const pts = [];
+  const arc = (c, r, a0, a1, k) => { for (let i = 0; i <= k; i++) { const a = a0 + ((a1 - a0) * i) / k; pts.push([c[0] + r * Math.cos(a), c[1] + r * Math.sin(a), z]); } };
+  arc(c1, r1, th + al, th - al + Math.PI * 2, n);   // around the front of the chainring
+  arc(c2, r2, th - al, th + al, Math.round(n / 3)); // around the back of the cog
+  return pts;
+}
+
 // Named ranges into the frame buffer, so tests can check an anchor against the wire it labels.
 export const FRAME_PARTS = {};
 
 export function buildFrame() {
   const out = [];
-  const part = (name, fn) => { const a = out.length; fn(); FRAME_PARTS[name] = [a, out.length]; };
-  part('rear_triangle', () => {
-    tube(out, J.RL, [J.BB[0], J.BB[1], -0.05]); // chainstays
-    tube(out, J.RR, [J.BB[0], J.BB[1], 0.05]);
-    tube(out, J.RL, J.ST);                      // seatstays
-    tube(out, J.RR, J.ST);
-  });
-  part('main_triangle', () => {
-    tube(out, J.BB, J.ST);   // seat tube
-    tube(out, J.BB, J.HTb);  // down tube
-    tube(out, J.ST, J.HTt);  // top tube
-  });
-  part('head_tube', () => { tube(out, J.HTb, J.HTt, 0.022); });
-  part('fork', () => { tube(out, J.HTb, J.FL, 0.014); tube(out, J.HTb, J.FR, 0.014); });
+  const ranges = {};
+  const mark = (name) => { if (!ranges[name]) ranges[name] = [out.length, out.length]; };
+  const done = (name) => { ranges[name][1] = out.length; };
+  for (const t of TUBES) { mark(t.part); tube(out, t.a, t.b, Math.max(t.r, 0.010)); done(t.part); }
+  const part = (name, fn) => { mark(name); fn(); done(name); };
   part('axle_f', () => { seg(out, J.FL, J.FR); });
   part('axle_r', () => { seg(out, J.RL, J.RR); });
-  part('seat_post', () => { tube(out, J.ST, J.SD, 0.012); });
   part('saddle', () => {
-    ellipseXZ(out, J.SD[0], J.SD[1], 0, 0.14, 0.07, 28);
-    ellipseXZ(out, J.SD[0], J.SD[1] + 0.025, 0, 0.12, 0.055, 28);
+    const o = saddleOutline(28);
+    for (let i = 0; i < o.length; i++) {
+      const a = o[i], b = o[(i + 1) % o.length];
+      seg(out, [J.SD[0] + a[0], J.SD[1], a[1]], [J.SD[0] + b[0], J.SD[1], b[1]]);
+      seg(out, [J.SD[0] + a[0] * 0.9, J.SD[1] + 0.028, a[1] * 0.85], [J.SD[0] + b[0] * 0.9, J.SD[1] + 0.028, b[1] * 0.85]);
+    }
   });
-  part('stem', () => { tube(out, J.HTt, J.BAR, 0.012); });
-  part('bar_l', () => { tube(out, J.BAR, J.GL, 0.012); });
-  part('bar_r', () => { tube(out, J.BAR, J.GR, 0.012); });
   part('wheel_r', () => { wheel(out, J.RA[0], J.RA[1]); });
   part('wheel_f', () => { wheel(out, J.FA[0], J.FA[1]); });
+  Object.assign(FRAME_PARTS, ranges);
   return new Float32Array(out);
 }
 
@@ -199,20 +238,20 @@ export const PATCHES = [
   },
   {
     id: 'pedal_l', joint: 'L_Pedal_Base', wire: 'pedal', anchorRef: [0, 0.012, 0], kind: 'CONTACT', parent: 'pedalL',
-    shape: { type: 'disc', radius: 0.042 },
-    position: [0, 0.012, 0], rotation: [-Math.PI / 2, 0, 0],
+    shape: { type: 'box', size: [0.09, 0.016, 0.06] },
+    position: [0, 0.004, 0], rotation: [0, 0, 0],
     anchor: [0, 0.012, 0], normal: [0, 0, -1], facing: 'signed', offset: [56, 36],
   },
   {
     id: 'pedal_r', joint: 'R_Pedal_Base', wire: 'pedal', anchorRef: [0, 0.012, 0], kind: 'CONTACT', parent: 'pedalR',
-    shape: { type: 'disc', radius: 0.042 },
-    position: [0, 0.012, 0], rotation: [-Math.PI / 2, 0, 0],
+    shape: { type: 'box', size: [0.09, 0.016, 0.06] },
+    position: [0, 0.004, 0], rotation: [0, 0, 0],
     anchor: [0, 0.012, 0], normal: [0, 0, 1], facing: 'signed', offset: [56, 36],
   },
   {
     id: 'saddle', joint: 'M_Body', wire: 'saddle', anchorRef: [J.SD[0], J.SD[1] + 0.015, 0], kind: 'SUPPORT', parent: 'frame',
-    shape: { type: 'sphere', radius: 0.13, scale: [1, 0.22, 0.55] },
-    position: [J.SD[0], J.SD[1] + 0.02, 0], rotation: [0, 0, 0],
+    shape: { type: 'saddle', depth: 0.014 },
+    position: [J.SD[0], J.SD[1], 0], rotation: [0, 0, 0],
     anchor: [J.SD[0], J.SD[1] + 0.015, 0], normal: null, facing: 'always', offset: [-40, -60],
   },
   {

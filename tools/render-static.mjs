@@ -2,12 +2,12 @@
 // Outputs: assets/hero-fallback.svg (no-WebGL fallback) and assets/og.svg (source for og.jpg).
 // Run: node tools/render-static.mjs
 import { writeFileSync } from 'node:fs';
-import { buildFrame, buildCrank, buildPedal, buildGrid, PATCHES, COLORS, J, pedalOffsets } from '../js/bike.js';
+import { buildFrame, buildCrank, buildPedal, buildGrid, PATCHES, COLORS, J, pedalOffsets, saddleOutline } from '../js/bike.js';
 
 // Same constants as hero.js
-const ORBIT_PERIOD = 40, BOB_PERIOD = 13, AZ0 = 0.65, EL0 = 0.35, RADIUS = 2.6, FOV = 34;
+const ORBIT_PERIOD = 40, BOB_PERIOD = 13, AZ0 = 0.38, EL0 = 0.35, RADIUS = 2.6, FOV = 34;
 const TARGET = [0.52, 0.42, 0];
-const T = 12; // reveal complete, same frame as the verification probes
+const T = 40; // one full orbit: same pose as the live hero's static views (STATIC_T in hero.js)
 
 // ---- vector helpers ----
 const sub = (a, b) => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
@@ -84,6 +84,18 @@ function shapeSamples(s) { // local-space point loops per shape, before mesh rot
     case 'cylinder': {
       const pts = [];
       for (const y of [-s.length / 2, s.length / 2]) for (let i = 0; i < 16; i++) { const a = (i / 16) * Math.PI * 2; pts.push([s.radius * Math.cos(a), y, s.radius * Math.sin(a)]); }
+      loops.push({ pts, mode: 'hull' });
+      break;
+    }
+    case 'box': {
+      const [sx, sy, sz] = s.size, pts = [];
+      for (const x of [-sx / 2, sx / 2]) for (const y of [-sy / 2, sy / 2]) for (const z of [-sz / 2, sz / 2]) pts.push([x, y, z]);
+      loops.push({ pts, mode: 'hull' });
+      break;
+    }
+    case 'saddle': {
+      const pts = [];
+      for (const [x, z] of saddleOutline(24)) { pts.push([x, 0, z]); pts.push([x * 0.9, s.depth, z * 0.85]); }
       loops.push({ pts, mode: 'hull' });
       break;
     }
