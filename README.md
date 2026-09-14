@@ -25,13 +25,13 @@ node js/grasp.test.mjs
 - Copy: `index.html` (all visible text is there, nothing is generated).
 - Tokens and layout: `css/site.css`.
 - Hologram engine: `js/holo.js` (three.js loading, fallbacks, resize, visibility, drag, hover, labels, status hook), shared by three scenes.
-- Hero scene: `js/hero.js` on `js/bike.js` (bicycle geometry and the ten action surfaces).
+- Hero: `js/hero-image.js` places ten live HTML tags on `assets/hero-bike.jpg` (the approved Grok render, label-free) at the positions of the approved composition; reveal, pulse and hover, no WebGL. The earlier live 3D bicycle (`js/hero.js` on `js/bike.js`) is kept in the repo and still renders through `tools/capture.html?scene=hero`, but is not on the page or in the deploy artifact.
 - Hand scenes: `js/scenes.js` on `js/hand.js` (a hand opening from a fist in the layers section; a hand grasping a cup in the two-standards section). The grasp layout and finger curls come from `js/grasp-layout.js`: a pure forward-kinematics model of the rig, a solver that closes each digit until its rendered contact sphere touches the tapered cup wall while every capsule and joint ball stays outside it, and `js/grasp.test.mjs` asserting exactly that. `node tools/grasp-search.mjs` re-searches the hand position and thumb angles if the hand or cup geometry changes. Surface colours live in `js/colors.js`.
 - Concept clip: `assets/hand-demo.mp4` (Higgsfield render, captioned as a concept, not pipeline output).
 - Fallback stills for the hand scenes come from `tools/capture.html?scene=hand|grasp` rendered headless (see below).
 - Demo clip: `assets/contact-demo.mp4` + `assets/contact-demo-poster.jpg`. Replace both to swap the demo; keep the file names.
 - Share image: `assets/og.jpg` (1200x630), made from the labelled Grok render (`tools/label-overlay.html` produces the labels). `tools/render-static.mjs` still writes an alternative `assets/og.svg`, unused.
-- Static hero for no-WebGL: `assets/hero-fallback.svg`.
+- `assets/hero-fallback.svg` is the old 3D hero's static fallback, kept for the capture tool only and excluded from the deploy.
 
 ## Hero interactions
 

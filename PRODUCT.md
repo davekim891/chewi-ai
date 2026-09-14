@@ -36,7 +36,7 @@ The page is a pre-launch placeholder for chewi.ai (domain not yet purchased as o
 - Name: CHEWI AI (all caps wordmark in GO's mockup, "AI" in blue).
 - Parent: PlayHybrid (credit line only, no PlayHybrid logo asset exists locally).
 - GO's mockup (ChatGPT image, 2026-09-10) is binding as direction: dark scene, wireframe bicycle, colored semantic tags GRIP / SUPPORT / CONTACT / ROTATION / HINGE. It is not a usable asset (text is baked in).
-- Dave's decision: the hero is a live three.js wireframe object with animated semantic labels, not an image.
+- Dave's decisions: first a live three.js hologram bicycle; then (2026-09-14) the approved Grok render as the hero image with the ten semantic tags as live HTML on top. The hand scenes stay live 3D.
 
 ## Evidence on Hand
 

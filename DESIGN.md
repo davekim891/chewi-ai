@@ -23,7 +23,7 @@ One theme (dark), no light mode. Strategy: restrained neutrals plus one accent, 
 | `--c-support` | #a78bfa | SUPPORT surfaces |
 | `--c-rotation` | #f5b544 | ROTATION and HINGE |
 
-Rules: the accent never appears on a semantic surface and a semantic colour never appears on UI chrome, except as a 9% tint on a content cell. No gradients, no glow on UI elements. The hero object is the one thing that glows: hologram bodies (fresnel shader, bright at grazing angles, additive, #7cc0ff) with a faint wire overlay (#cfe9ff at 28%) and a soft blue halo; action surfaces are solid glowing bodies in their category colour; the two tire contacts also project a soft green ring on the floor. The look is matched to the Grok reference render that is also the share image.
+Rules: the accent never appears on a semantic surface and a semantic colour never appears on UI chrome, except as a 9% tint on a content cell. No gradients, no glow on UI elements. The hero object is the one thing that glows: hologram bodies (fresnel shader, bright at grazing angles, additive, #7cc0ff) with a faint wire overlay (#cfe9ff at 28%) and a soft blue halo; action surfaces are solid glowing bodies in their category colour; the two tire contacts also project a soft green ring on the floor. Since 2026-09-14 the hero is the Grok render itself (label-free version) with the ten tags as live HTML on top, so the page and the share image are the same picture; the hand scenes keep the hologram engine.
 
 ## Type
 

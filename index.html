@@ -15,6 +15,7 @@
   <meta name="twitter:card" content="summary_large_image">
   <link rel="preload" href="fonts/space-grotesk-latin-700.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="fonts/space-grotesk-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="assets/hero-bike.jpg" as="image" fetchpriority="high">
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
   <link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js">
   <script type="importmap">
@@ -43,14 +44,10 @@
         </a>
       </div>
 
-      <div class="holo-stage">
-        <canvas aria-label="A wireframe bicycle rotating slowly, with its compiled action surfaces highlighted and labelled: two grips, the saddle, two pedals, both tire contact bands, the crank, the front hub and the headset."></canvas>
+      <div class="holo-stage hero-image">
+        <img src="assets/hero-bike.jpg" width="1792" height="1008" fetchpriority="high" decoding="async" alt="A hologram bicycle with its compiled action surfaces highlighted: two grips, the saddle, two pedals, both tire contact bands, the crank, the front hub and the headset.">
         <svg class="holo-leaders" aria-hidden="true"></svg>
         <div class="holo-tags" aria-hidden="true"></div>
-        <p class="holo-hint" aria-hidden="true">Drag to orbit</p>
-        <picture class="holo-fallback" hidden>
-          <img data-src="assets/hero-fallback.svg" src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==" width="1200" height="1000" alt="A wireframe bicycle with its compiled action surfaces labelled: grips, saddle, pedals, tire contact, crank, hub and headset.">
-        </picture>
       </div>
     </section>
 
@@ -225,7 +222,7 @@
       lazyVideos.forEach((v) => io.observe(v));
     } else lazyVideos.forEach(loadVideo);
   </script>
-  <script type="module" src="js/hero.js"></script>
+  <script type="module" src="js/hero-image.js"></script>
   <script type="module" src="js/scenes.js"></script>
   <script type="module" src="js/manifest.js"></script>
 </body>
