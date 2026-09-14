@@ -55,7 +55,7 @@ p { margin: 0; }
 .hero {
   position: relative;
   min-height: min(100dvh, 700px);
-  padding: calc(var(--top) + 16px) var(--gutter) 40px;
+  padding: calc(var(--top) + 16px) var(--gutter) 16px;
   display: grid;
   grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
   gap: clamp(24px, 4vw, 56px);
