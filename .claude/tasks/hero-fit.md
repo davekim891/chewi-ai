@@ -89,3 +89,35 @@ camera back exactly as far as needed and no further. Concretely:
 3. UNVERIFIED: every symbol, behavior, or claim you could not confirm.
 4. DEVIATIONS: anything done differently from this statement, and why.
 5. OBSERVED ADJACENT ISSUES: reported, untouched.
+
+## Findings to fix (attempt 2) — orchestrator gate, 2026-09-15
+
+Attempt 1 is a KILL on success criterion 4: `fitRadius` = 2.677 on every landscape aspect (VIEW.D is 1.2912), so the
+bike renders at about half its intended size and fills roughly a quarter of the stage. Your report correctly
+diagnosed the cause: the AABB is a poor hull. Its floor-level corners beside the wheels (the handlebar width projected
+down to the tyre plane) are what leave the frame, not the bike. The fix is to fit the SILHOUETTE, not the box:
+
+1. `bounds` becomes a point set, not a Box3. `js/hero-mesh.js` returns `fitPoints`: a `Float32Array` (or array of
+   [x,y,z]) of WORLD-space points sampled from the bike mesh's POSITION attribute (every k-th vertex so that
+   1,500–3,000 points remain; the mesh has 81,268 vertices, so k = 32 gives ~2,540), transformed by the bike group's
+   world matrix (after `bike.position.y = -FLOOR_Y`), PLUS 16 points on each tyre floor-glow ring at its outer
+   radius (y = 0), so the glows are inside the frame too. Keep the `bounds`/Box3 path out; remove it rather than
+   leaving two code paths.
+2. `js/fit.js` `fitRadius` takes `points` (any count) instead of 8 corners; the per-point linear solve you derived is
+   unchanged. Complexity: 36 az × 3 el × ~2,600 points ≈ 280k projections per `resize()`; that is fine (it runs only
+   on resize and once after build), but do it in a plain loop over a flat Float32Array, no allocation per point.
+3. `fitMargin` for the hero: 0.04 (the label layout clamps labels inside the stage on its own).
+4. Report the numbers: `fitRadius` at aspect 1792/1008, 1.2 (Dave's stage is about 1.2:1 at 1512x808), 1.0 and
+   0.6 (phone portrait), and the opening pose's bike fill (projected bike width / stage width at az0, el0) for
+   aspect 1.2. Orchestrator's rough expectation, to be checked not matched: on landscape aspects the binding pose is
+   side-on (length 1.0 across the stage) or the elMax tilt, giving a radius in the neighbourhood of 1.8–1.9, i.e.
+   the opening pose about 30 % smaller than the render crop, not 50 %. If your result differs, explain which pose
+   and point binds.
+5. Update `js/fit.test.mjs` for the point-set API: (a)–(c) as before; (d) replace the AABB case with the sampled-hull
+   case: build a synthetic bike-like point set (two circles of radius 0.26 at x = ±0.34, y = 0.26, in the XY plane,
+   plus the four grip/saddle points) and assert that the fitted radius at aspect 1.2 is strictly less than the
+   AABB-corner radius for the same set's bounding box (this pins the reason for the change). Mutation-test again and
+   list the mutations.
+6. Everything else in the mandate stands (elMin/el0/elMax, 36 azimuths, `fit()` / `fitCheck()` hooks, minimality,
+   `cam.radius` floor, stage.mjs, docs sentences). Keep your attempt-1 derivation and test infrastructure; this is a
+   change of input, not of method.

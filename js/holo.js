@@ -9,6 +9,7 @@ const reducedMotion = () => REDUCED_MQ.matches || !!window.__chewiForceReduced;
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
 import { COLORS } from './colors.js';
+import { fitRadius as solveFitRadius, projectCorner } from './fit.js';
 export { COLORS };
 
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
@@ -52,6 +53,7 @@ export function createScene(opts) {
   let THREE, renderer, scene, camera, TARGET, vTmp, nTmp, dTmp, raycaster, ndc;
   let entries = [], lineMats = [], animate = null;
   let size = { w: 1, h: 1 };
+  let fitSpec = null, fittedRadius = cam.radius;
   let last = 0, yaw = 0, pitch = 0, yawT = 0, pitchT = 0;
   let visible = true, lowFpsSince = 0, dprDropped = false, lostTimer = 0;
   let dragging = false, interacted = false, dragYaw = 0, dragPitch = 0, dragVelYaw = 0, dragVelPitch = 0;
@@ -166,6 +168,12 @@ export function createScene(opts) {
     const ctx = { THREE, scene, holo, lines: (arr, o) => lines(arr, o, mods), tubeMesh, groundGlow, grid, patchGeometry, COLORS, state };
     const built = opts.build(ctx, loaded);
     animate = built.animate || null;
+    if (built.bounds) {
+      const min = built.bounds.min, max = built.bounds.max;
+      const corners = [];
+      for (const x of [min.x, max.x]) for (const y of [min.y, max.y]) for (const z of [min.z, max.z]) corners.push([x, y, z]);
+      fitSpec = { corners, margin: built.fitMargin ?? 0.06 };
+    }
 
     entries = built.patches.map((p, i) => {
       const color = new THREE.Color(COLORS[p.kind]);
@@ -269,7 +277,8 @@ export function createScene(opts) {
     if (animate) animate(t, dt);
     const az = cam.az0 + (2 * Math.PI * t) / cam.orbitPeriod + yaw + dragYaw;
     const el = clamp(cam.el0 + cam.bobAmp * Math.sin((2 * Math.PI * t) / cam.bobPeriod) + pitch + dragPitch, cam.elMin, cam.elMax);
-    camera.position.set(TARGET.x + cam.radius * Math.cos(el) * Math.sin(az), TARGET.y + cam.radius * Math.sin(el), TARGET.z + cam.radius * Math.cos(el) * Math.cos(az));
+    const R = fittedRadius;
+    camera.position.set(TARGET.x + R * Math.cos(el) * Math.sin(az), TARGET.y + R * Math.sin(el), TARGET.z + R * Math.cos(el) * Math.cos(az));
     camera.lookAt(TARGET);
 
     let revealed = 0;
@@ -381,6 +390,12 @@ export function createScene(opts) {
     size = { w, h };
     renderer.setSize(w, h, false);
     camera.aspect = w / h; camera.updateProjectionMatrix();
+    if (fitSpec) {
+      fittedRadius = solveFitRadius({
+        corners: fitSpec.corners, target: cam.target, fov: cam.fov, aspect: camera.aspect,
+        azSamples: 36, els: [cam.elMin, cam.el0, cam.elMax], margin: fitSpec.margin, minRadius: cam.radius,
+      });
+    }
     for (const m of lineMats) m.resolution.set(w, h);
     svg.setAttribute('viewBox', `0 0 ${w} ${h}`);
     if (state.ready && !state.running) renderOnce();
@@ -394,6 +409,10 @@ export function createScene(opts) {
     if (shouldRun !== state.running) { state.running = shouldRun; last = 0; renderer.setAnimationLoop(shouldRun ? frame : null); }
   }
 
+  function cornerPx(c, az, el) {
+    const p = projectCorner(c, cam.target, fittedRadius, az, el, cam.fov, camera.aspect);
+    return [((p.ndc[0] + 1) / 2) * size.w, ((1 - p.ndc[1]) / 2) * size.h];
+  }
   const api = {
     status() {
       if (renderer && state.mode !== 'fallback') renderOnce();
@@ -402,6 +421,34 @@ export function createScene(opts) {
     renderOnce() { if (renderer && state.mode !== 'fallback') renderOnce(); },
     setTime(s) { state.t = s; yaw = pitch = yawT = pitchT = 0; if (renderer && state.mode !== 'fallback') renderOnce(); },
     capture() { if (!renderer || state.mode === 'fallback') return null; renderOnce(); return canvas.toDataURL('image/png'); },
+    fit() {
+      const stage = { w: size.w, h: size.h };
+      if (!fitSpec || !camera) return { radius: cam.radius, fitRadius: fittedRadius, stage, worst: null };
+      let worst = null, worstScore = Infinity;
+      const els = [cam.elMin, cam.el0, cam.elMax];
+      const { w, h } = stage;
+      for (let i = 0; i < 36; i++) {
+        const az = (2 * Math.PI * i) / 36;
+        for (const el of els) {
+          for (const c of fitSpec.corners) {
+            const [px, py] = cornerPx(c, az, el);
+            const score = Math.min(px / w, py / h, 1 - px / w, 1 - py / h);
+            if (score < worstScore) { worstScore = score; worst = { az, el, cornerPx: [px, py] }; }
+          }
+        }
+      }
+      return { radius: cam.radius, fitRadius: fittedRadius, stage, worst };
+    },
+    fitCheck(az, el) {
+      if (!fitSpec || !camera) return { min: [0, 0], max: [0, 0] };
+      let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+      for (const c of fitSpec.corners) {
+        const [px, py] = cornerPx(c, az, el);
+        if (px < minX) minX = px; if (py < minY) minY = py;
+        if (px > maxX) maxX = px; if (py > maxY) maxY = py;
+      }
+      return { min: [minX, minY], max: [maxX, maxY] };
+    },
   };
   window.__chewiScenes[name] = api;
   boot();

@@ -100,6 +100,13 @@ const api = root && createScene({
       tire_f: groundGlow(scene, ANCHORS.tire_f.p[0], ANCHORS.tire_f.p[2], '74,222,128', 0.55, 0.32),
     };
 
+    scene.updateMatrixWorld(true);
+    const bounds = new THREE.Box3().setFromObject(bike);
+    for (const g of Object.values(glows)) {
+      bounds.expandByObject(g.glow);
+      bounds.expandByObject(g.ring);
+    }
+
     // one glow dot per surface: hover target, reveal target, label anchor
     const patches = Object.entries(ANCHORS).map(([id, a]) => ({
       id, kind: a.kind, parentObj: obj,
@@ -108,7 +115,7 @@ const api = root && createScene({
       order: REVEAL_ORDER.indexOf(id),
       onUpdate: glows[id] ? (ease, pulse) => { glows[id].glow.material.opacity = ease * (0.75 + pulse); glows[id].ring.material.opacity = ease * (0.8 + pulse); } : undefined,
     }));
-    return { patches, animate() {} };
+    return { patches, animate() {}, bounds, fitMargin: 0.06 };
   },
 });
 
