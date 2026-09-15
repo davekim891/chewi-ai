@@ -101,10 +101,25 @@ const api = root && createScene({
     };
 
     scene.updateMatrixWorld(true);
-    const bounds = new THREE.Box3().setFromObject(bike);
-    for (const g of Object.values(glows)) {
-      bounds.expandByObject(g.glow);
-      bounds.expandByObject(g.ring);
+    const STEP = 32;
+    const fit = [];
+    obj.traverse((m) => {
+      if (!m.isMesh || !m.geometry) return;
+      const pos = m.geometry.getAttribute('position');
+      if (!pos) return;
+      const e = m.matrixWorld.elements;
+      for (let i = 0; i < pos.count; i += STEP) {
+        const x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i);
+        fit.push(e[0] * x + e[4] * y + e[8] * z + e[12], e[1] * x + e[5] * y + e[9] * z + e[13], e[2] * x + e[6] * y + e[10] * z + e[14]);
+      }
+    });
+    const GW = 0.55, GD = 0.32, RING_N = 16;
+    for (const id of ['tire_r', 'tire_f']) {
+      const cx = ANCHORS[id].p[0], cz = ANCHORS[id].p[2], rx = GW / 2, rz = GD / 2;
+      for (let i = 0; i < RING_N; i++) {
+        const t = (2 * Math.PI * i) / RING_N;
+        fit.push(cx + rx * Math.cos(t), 0, cz + rz * Math.sin(t));
+      }
     }
 
     // one glow dot per surface: hover target, reveal target, label anchor
@@ -115,7 +130,7 @@ const api = root && createScene({
       order: REVEAL_ORDER.indexOf(id),
       onUpdate: glows[id] ? (ease, pulse) => { glows[id].glow.material.opacity = ease * (0.75 + pulse); glows[id].ring.material.opacity = ease * (0.8 + pulse); } : undefined,
     }));
-    return { patches, animate() {}, bounds, fitMargin: 0.06 };
+    return { patches, animate() {}, fitPoints: new Float32Array(fit), fitMargin: 0.04 };
   },
 });
 

@@ -121,3 +121,44 @@ down to the tyre plane) are what leave the frame, not the bike. The fix is to fi
 6. Everything else in the mandate stands (elMin/el0/elMax, 36 azimuths, `fit()` / `fitCheck()` hooks, minimality,
    `cam.radius` floor, stage.mjs, docs sentences). Keep your attempt-1 derivation and test infrastructure; this is a
    change of input, not of method.
+
+## Findings to fix (attempt 3) — orchestrator gate, 2026-09-15; executor: Opus (Windows-side)
+
+Attempt 2 met its own spec and is a KILL on the user's bar: `fitRadius` = 2.4534 on every landscape aspect (mesh-only
+1.9756), opening-pose bike width = 0.559 of the stage at aspect 1.2. The bike is half size. The binding sample is the
+drag-only extreme (el = elMax 0.62, az ≈ 100°) against the rear floor glow. Paying for a pose the auto-orbit never
+visits is the wrong trade. New design, replacing the "one static radius for every reachable pose" rule:
+
+1. **Static envelope = the untouched auto-orbit only.** `fitRadius` is computed (on resize and after build, as now)
+   over all 36 azimuths but only over el in [el0 − bobAmp − 0.05, el0 + bobAmp + 0.05] (sample 3 values: min, el0,
+   max; the ±0.05 is the mouse-hover pitch `pitchT` range in holo.js), with the same point set (sampled vertices +
+   glow ellipses) and margin 0.04. This is what a visitor who never drags sees: nothing cut off, no breathing.
+   Orchestrator's estimate for aspect 1.2: side-on binds horizontally at about 1.75; report the real number.
+2. **Dynamic zoom-out for drags.** Every frame, after `az`/`el` are known, compute `rNeed = fitRadius` for THAT pose
+   only (one azimuth, one elevation; ~2,600 point projections, no allocation) and set the camera radius to a
+   smoothed `rLive`, where the target is `max(fitRadius, rNeed)` and `rLive += (target − rLive) · (1 − e^(−4·dt))`
+   (same smoothing constant the engine already uses for yaw). So a drag to an extreme tilt dollies the camera back
+   just enough, and it eases back in when released. Since `rNeed ≤ fitRadius` for every pose inside the envelope,
+   the untouched orbit has a constant radius (assert this in the test: for all sampled envelope poses,
+   `rNeed(az, el) ≤ fitRadius + 1e−6`).
+3. Hooks: `fit()` now also returns `rLive` and `rNeed` for the current pose; `fitCheck(az, el)` returns the bbox at
+   the radius the engine would use for that pose (`max(fitRadius, rNeed(az, el))`), so a probe over ALL 36 az ×
+   {elMin, el0, elMax} still never sees a point outside the margin box — that remains a success criterion, now met
+   by the dynamic term instead of a single radius.
+4. Tests (`js/fit.test.mjs`): keep (a)–(d); add (e) the envelope invariant from item 2 on the synthetic bike, and (f)
+   a drag-extreme pose whose `rNeed` is strictly greater than the envelope `fitRadius` (proves the dynamic term is
+   live). Mutation-test (e) and (f) too (e.g. clamp `rNeed` to `fitRadius`, drop the el term) and list mutations.
+5. **Browser verification is part of this attempt** (you run Windows-side): headless Chrome
+   ("C:\Program Files\Google\Chrome\Application\chrome.exe" --headless=new, unique --user-data-dir under your temp
+   dir, kill only your own PID; never touch the user's Chrome or the python server on port 8732, which serves this
+   repo at http://localhost:8732/), `?reduced=1` at window sizes 1512x808, 1920x1080, 1280x720, 1024x1366, 390x844:
+   screenshot each; for 1512x808 confirm the rear wheel is fully inside the stage at the opening pose and report the
+   projected bike width / stage width (via `window.__chewiHero.fit()` or the DOM, whichever the reduced mode
+   exposes; if the hook is unreachable in headless, measure the screenshot). Also run `fitCheck` over 36 az × 3 el
+   through `--dump-dom`-free means (e.g. a tiny probe page under tools/ that imports the engine, or
+   `--remote-debugging-port` + a node WebSocket script) and report the worst margin. Do not claim what you did not
+   run; `?reduced=1` forces the static pose, so the dynamic term (item 2) is proved by the tests plus one non-reduced
+   screenshot at a larger virtual-time budget if the headless page reaches the webgl state (it fell back to the
+   image at 25 s in an earlier audit; if that happens, say so).
+6. Docs sentence in README/HANDOFF updated to describe the envelope + dynamic dolly. Mandate constraints unchanged
+   (no changes to VIEW/ANCHORS/FLOOR_Y, shader, index.html, css, assets; no git commit).

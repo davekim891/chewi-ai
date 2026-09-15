@@ -168,11 +168,16 @@ export function createScene(opts) {
     const ctx = { THREE, scene, holo, lines: (arr, o) => lines(arr, o, mods), tubeMesh, groundGlow, grid, patchGeometry, COLORS, state };
     const built = opts.build(ctx, loaded);
     animate = built.animate || null;
-    if (built.bounds) {
-      const min = built.bounds.min, max = built.bounds.max;
-      const corners = [];
-      for (const x of [min.x, max.x]) for (const y of [min.y, max.y]) for (const z of [min.z, max.z]) corners.push([x, y, z]);
-      fitSpec = { corners, margin: built.fitMargin ?? 0.06 };
+    if (built.fitPoints) {
+      const src = built.fitPoints;
+      let points;
+      if (src instanceof Float32Array) points = src;
+      else if (typeof src[0] === 'number') points = Float32Array.from(src);
+      else {
+        points = new Float32Array(src.length * 3);
+        for (let i = 0; i < src.length; i++) { points[i * 3] = src[i][0]; points[i * 3 + 1] = src[i][1]; points[i * 3 + 2] = src[i][2]; }
+      }
+      fitSpec = { points, margin: built.fitMargin ?? 0.06 };
     }
 
     entries = built.patches.map((p, i) => {
@@ -392,7 +397,7 @@ export function createScene(opts) {
     camera.aspect = w / h; camera.updateProjectionMatrix();
     if (fitSpec) {
       fittedRadius = solveFitRadius({
-        corners: fitSpec.corners, target: cam.target, fov: cam.fov, aspect: camera.aspect,
+        points: fitSpec.points, target: cam.target, fov: cam.fov, aspect: camera.aspect,
         azSamples: 36, els: [cam.elMin, cam.el0, cam.elMax], margin: fitSpec.margin, minRadius: cam.radius,
       });
     }
@@ -409,8 +414,10 @@ export function createScene(opts) {
     if (shouldRun !== state.running) { state.running = shouldRun; last = 0; renderer.setAnimationLoop(shouldRun ? frame : null); }
   }
 
-  function cornerPx(c, az, el) {
-    const p = projectCorner(c, cam.target, fittedRadius, az, el, cam.fov, camera.aspect);
+  const _pt = [0, 0, 0];
+  function pointPx(x, y, z, az, el) {
+    _pt[0] = x; _pt[1] = y; _pt[2] = z;
+    const p = projectCorner(_pt, cam.target, fittedRadius, az, el, cam.fov, camera.aspect);
     return [((p.ndc[0] + 1) / 2) * size.w, ((1 - p.ndc[1]) / 2) * size.h];
   }
   const api = {
@@ -427,11 +434,12 @@ export function createScene(opts) {
       let worst = null, worstScore = Infinity;
       const els = [cam.elMin, cam.el0, cam.elMax];
       const { w, h } = stage;
+      const pts = fitSpec.points;
       for (let i = 0; i < 36; i++) {
         const az = (2 * Math.PI * i) / 36;
         for (const el of els) {
-          for (const c of fitSpec.corners) {
-            const [px, py] = cornerPx(c, az, el);
+          for (let o = 0; o < pts.length; o += 3) {
+            const [px, py] = pointPx(pts[o], pts[o + 1], pts[o + 2], az, el);
             const score = Math.min(px / w, py / h, 1 - px / w, 1 - py / h);
             if (score < worstScore) { worstScore = score; worst = { az, el, cornerPx: [px, py] }; }
           }
@@ -442,8 +450,9 @@ export function createScene(opts) {
     fitCheck(az, el) {
       if (!fitSpec || !camera) return { min: [0, 0], max: [0, 0] };
       let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-      for (const c of fitSpec.corners) {
-        const [px, py] = cornerPx(c, az, el);
+      const pts = fitSpec.points;
+      for (let o = 0; o < pts.length; o += 3) {
+        const [px, py] = pointPx(pts[o], pts[o + 1], pts[o + 2], az, el);
         if (px < minX) minX = px; if (py < minY) minY = py;
         if (px > maxX) maxX = px; if (py > maxY) maxY = py;
       }
