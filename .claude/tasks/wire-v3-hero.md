@@ -27,7 +27,7 @@ match-view (it needs a visible browser).
    - `ANCHORS`: same ten ids and kinds, `p` from the JSON (4 decimals), keep each anchor's existing `offset` values.
      The bike now faces -X and left/right are mirrored in Z relative to the old mesh, so the `normal` fields must be
      recomputed by this rule: for the four anchors that carry a `normal` (pedal_l, pedal_r, grip_l, grip_r) set
-     `normal: [0, 0, sign(p.z)]`, i.e. pedal_l -> [0,0,-1], pedal_r -> [0,0,1], grip_l -> [0,0,1], grip_r -> [0,0,-1].
+     `normal: [0, 0, sign(p.z)]`. (Historical: this attempt labelled the near pedal pedal_l; corrected in the pedal-swap task, 2026-09-15: near side -z is the rider's right, so pedal_r -> [0,0,-1], pedal_l -> [0,0,1], grip_r -> [0,0,-1], grip_l -> [0,0,1].)
      Anchors without a `normal` today stay without one.
    - Update the header comment and the "From tools/match-view.html against assets/bike.glb" comment to say the mesh is
      the Meshy v3 bike (`3d/v3/README.md`) and the numbers come from `3d/v3/view_v3.json`.

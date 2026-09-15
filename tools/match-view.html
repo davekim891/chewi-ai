@@ -13,7 +13,7 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 const q = new URLSearchParams(location.search);
 const out = (o) => { document.getElementById('s').textContent = JSON.stringify(o); document.documentElement.dataset.state = o.state; };
 const IMG_W = 1792, IMG_H = 1008, W = 448, H = 252, FOV = 34;
-const ANCHORS = [['CONTACT','tire_r',512,722],['CONTACT','tire_f',1168,858],['ROTATION','crank',742,612],['CONTACT','pedal_l',665,520],['CONTACT','pedal_r',856,702],['SUPPORT','saddle',655,160],['GRIP','grip_l',1218,148],['GRIP','grip_r',948,160],['ROTATION','hub_f',1152,615],['HINGE','headset',1077,276]];
+const ANCHORS = [['CONTACT','tire_r',512,722],['CONTACT','tire_f',1168,858],['ROTATION','crank',742,612],['CONTACT','pedal_r',665,520],['CONTACT','pedal_l',856,702],['SUPPORT','saddle',655,160],['GRIP','grip_l',1218,148],['GRIP','grip_r',948,160],['ROTATION','hub_f',1152,615],['HINGE','headset',1077,276]];
 try {
   // reference silhouette from the render
   const im = new Image(); im.src = q.get('img') || '../assets/hero-bike.jpg'; await im.decode();

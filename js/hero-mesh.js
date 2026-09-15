@@ -13,8 +13,9 @@ const ANCHORS = {
   tire_r:  { kind: 'CONTACT',  p: [ 0.2970, -0.2577, -0.0062], offset: [-30, 46] },
   tire_f:  { kind: 'CONTACT',  p: [-0.3562, -0.2249, -0.0066], offset: [30, 46] },
   crank:   { kind: 'ROTATION', p: [ 0.0042, -0.1039, -0.0276], offset: [-70, 40] },
-  pedal_l: { kind: 'CONTACT',  p: [ 0.0734, -0.0390, -0.0436], offset: [-56, -40], normal: [0, 0, -1] },
-  pedal_r: { kind: 'CONTACT',  p: [-0.0184, -0.2014,  0.0720], offset: [56, 36], normal: [0, 0, 1] },
+  // near side (-z) is the rider's right
+  pedal_l: { kind: 'CONTACT',  p: [-0.0184, -0.2014,  0.0720], offset: [56, 36], normal: [0, 0, 1] },
+  pedal_r: { kind: 'CONTACT',  p: [ 0.0734, -0.0390, -0.0436], offset: [-56, -40], normal: [0, 0, -1] },
   saddle:  { kind: 'SUPPORT',  p: [ 0.1068,  0.2359, -0.0029], offset: [-40, -60] },
   grip_l:  { kind: 'GRIP',     p: [-0.2515,  0.2487,  0.1891], offset: [40, -56], normal: [0, 0, 1] },
   grip_r:  { kind: 'GRIP',     p: [-0.2559,  0.2496, -0.1388], offset: [40, -56], normal: [0, 0, -1] },
