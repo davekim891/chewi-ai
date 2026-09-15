@@ -9,7 +9,7 @@ const reducedMotion = () => REDUCED_MQ.matches || !!window.__chewiForceReduced;
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
 import { COLORS } from './colors.js';
-import { fitRadius as solveFitRadius, projectCorner } from './fit.js';
+import { fitRadius as solveFitRadius, fitRadiusForPose as solvePoseRadius, projectCorner } from './fit.js';
 export { COLORS };
 
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
@@ -53,7 +53,8 @@ export function createScene(opts) {
   let THREE, renderer, scene, camera, TARGET, vTmp, nTmp, dTmp, raycaster, ndc;
   let entries = [], lineMats = [], animate = null;
   let size = { w: 1, h: 1 };
-  let fitSpec = null, fittedRadius = cam.radius;
+  let fitSpec = null, fittedRadius = cam.radius, liveRadius = cam.radius, poseRadius = cam.radius;
+  let poseAz = cam.az0, poseEl = cam.el0;
   let last = 0, yaw = 0, pitch = 0, yawT = 0, pitchT = 0;
   let visible = true, lowFpsSince = 0, dprDropped = false, lostTimer = 0;
   let dragging = false, interacted = false, dragYaw = 0, dragPitch = 0, dragVelYaw = 0, dragVelPitch = 0;
@@ -269,6 +270,21 @@ export function createScene(opts) {
     sync();
   }
 
+  // The envelope a visitor who never drags sees: the bob, plus the ±0.05 hover pitch (pitchT's range).
+  const HOVER_PITCH = 0.05;
+  function envelopeEls() {
+    const span = cam.bobAmp + HOVER_PITCH;
+    return [clamp(cam.el0 - span, cam.elMin, cam.elMax), cam.el0, clamp(cam.el0 + span, cam.elMin, cam.elMax)];
+  }
+  // Radius this one pose needs; 0 if the scene gave no fit points.
+  function needForPose(az, el) {
+    if (!fitSpec || !camera) return 0;
+    return solvePoseRadius({
+      points: fitSpec.points, target: cam.target, fov: cam.fov, aspect: camera.aspect,
+      az, el, margin: fitSpec.margin, minRadius: 0,
+    });
+  }
+
   function update(dt) {
     state.t += dt;
     const t = state.t;
@@ -282,7 +298,12 @@ export function createScene(opts) {
     if (animate) animate(t, dt);
     const az = cam.az0 + (2 * Math.PI * t) / cam.orbitPeriod + yaw + dragYaw;
     const el = clamp(cam.el0 + cam.bobAmp * Math.sin((2 * Math.PI * t) / cam.bobPeriod) + pitch + dragPitch, cam.elMin, cam.elMax);
-    const R = fittedRadius;
+    poseAz = az; poseEl = el;
+    // Static envelope keeps the untouched orbit at one radius; a drag outside it dollies back, smoothed.
+    poseRadius = needForPose(az, el);
+    const want = Math.max(fittedRadius, poseRadius);
+    liveRadius = dt > 0 ? liveRadius + (want - liveRadius) * k : want;
+    const R = liveRadius;
     camera.position.set(TARGET.x + R * Math.cos(el) * Math.sin(az), TARGET.y + R * Math.sin(el), TARGET.z + R * Math.cos(el) * Math.cos(az));
     camera.lookAt(TARGET);
 
@@ -398,8 +419,9 @@ export function createScene(opts) {
     if (fitSpec) {
       fittedRadius = solveFitRadius({
         points: fitSpec.points, target: cam.target, fov: cam.fov, aspect: camera.aspect,
-        azSamples: 36, els: [cam.elMin, cam.el0, cam.elMax], margin: fitSpec.margin, minRadius: cam.radius,
+        azSamples: 36, els: envelopeEls(), margin: fitSpec.margin, minRadius: cam.radius,
       });
+      if (liveRadius < fittedRadius) liveRadius = fittedRadius;
     }
     for (const m of lineMats) m.resolution.set(w, h);
     svg.setAttribute('viewBox', `0 0 ${w} ${h}`);
@@ -415,11 +437,13 @@ export function createScene(opts) {
   }
 
   const _pt = [0, 0, 0];
-  function pointPx(x, y, z, az, el) {
+  function pointPx(x, y, z, az, el, radius) {
     _pt[0] = x; _pt[1] = y; _pt[2] = z;
-    const p = projectCorner(_pt, cam.target, fittedRadius, az, el, cam.fov, camera.aspect);
+    const p = projectCorner(_pt, cam.target, radius, az, el, cam.fov, camera.aspect);
     return [((p.ndc[0] + 1) / 2) * size.w, ((1 - p.ndc[1]) / 2) * size.h];
   }
+  // The radius the engine would actually use at this pose: envelope floor, dollied back if the pose needs it.
+  const radiusAt = (az, el) => Math.max(fittedRadius, needForPose(az, el));
   const api = {
     status() {
       if (renderer && state.mode !== 'fallback') renderOnce();
@@ -430,7 +454,8 @@ export function createScene(opts) {
     capture() { if (!renderer || state.mode === 'fallback') return null; renderOnce(); return canvas.toDataURL('image/png'); },
     fit() {
       const stage = { w: size.w, h: size.h };
-      if (!fitSpec || !camera) return { radius: cam.radius, fitRadius: fittedRadius, stage, worst: null };
+      const base = { radius: cam.radius, fitRadius: fittedRadius, rLive: liveRadius, rNeed: poseRadius, pose: { az: poseAz, el: poseEl }, envelopeEls: envelopeEls(), stage };
+      if (!fitSpec || !camera) return { ...base, worst: null };
       let worst = null, worstScore = Infinity;
       const els = [cam.elMin, cam.el0, cam.elMax];
       const { w, h } = stage;
@@ -438,25 +463,36 @@ export function createScene(opts) {
       for (let i = 0; i < 36; i++) {
         const az = (2 * Math.PI * i) / 36;
         for (const el of els) {
+          const R = radiusAt(az, el);
           for (let o = 0; o < pts.length; o += 3) {
-            const [px, py] = pointPx(pts[o], pts[o + 1], pts[o + 2], az, el);
+            const [px, py] = pointPx(pts[o], pts[o + 1], pts[o + 2], az, el, R);
             const score = Math.min(px / w, py / h, 1 - px / w, 1 - py / h);
             if (score < worstScore) { worstScore = score; worst = { az, el, cornerPx: [px, py] }; }
           }
         }
       }
-      return { radius: cam.radius, fitRadius: fittedRadius, stage, worst };
+      return { ...base, worst, worstMargin: worstScore };
     },
+    // Envelope fitRadius the engine would compute if the stage had this aspect (verification only).
+    fitAt(aspect) {
+      if (!fitSpec) return cam.radius;
+      return solveFitRadius({
+        points: fitSpec.points, target: cam.target, fov: cam.fov, aspect,
+        azSamples: 36, els: envelopeEls(), margin: fitSpec.margin, minRadius: cam.radius,
+      });
+    },
+    // bbox at the radius the engine would use for this pose (envelope floor or the pose's own need).
     fitCheck(az, el) {
-      if (!fitSpec || !camera) return { min: [0, 0], max: [0, 0] };
+      if (!fitSpec || !camera) return { min: [0, 0], max: [0, 0], radius: fittedRadius };
       let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
       const pts = fitSpec.points;
+      const R = radiusAt(az, el);
       for (let o = 0; o < pts.length; o += 3) {
-        const [px, py] = pointPx(pts[o], pts[o + 1], pts[o + 2], az, el);
+        const [px, py] = pointPx(pts[o], pts[o + 1], pts[o + 2], az, el, R);
         if (px < minX) minX = px; if (py < minY) minY = py;
         if (px > maxX) maxX = px; if (py > maxY) maxY = py;
       }
-      return { min: [minX, minY], max: [maxX, maxY] };
+      return { min: [minX, minY], max: [maxX, maxY], radius: R };
     },
   };
   window.__chewiScenes[name] = api;

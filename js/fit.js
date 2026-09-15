@@ -1,5 +1,7 @@
 // fit.js: smallest orbit-camera radius that keeps a world-space point set inside the
-// stage inset by a margin, at every sampled azimuth and listed elevation.
+// stage inset by a margin. Two exports: `fitRadius` over a whole envelope of poses
+// (the untouched auto-orbit, solved on resize) and `fitRadiusForPose` for one live pose
+// (the dynamic dolly-back while the visitor drags, solved every frame).
 // Pure math on plain arrays — no three.js. Used by holo.js; checked by js/fit.test.mjs.
 //
 // Camera is the same as the render loop: position = target + R * dir(az, el),
@@ -54,11 +56,35 @@ function asFlat(points) {
   return out;
 }
 
+// Smallest radius that fits every point at ONE pose. Plain loop over the flat array, no allocation.
+function poseSolve(xyz, nPts, az, el, tx, ty, tz, invH, invV) {
+  const ce = Math.cos(el), se = Math.sin(el);
+  const ca = Math.cos(az), sa = Math.sin(az);
+  const dx = ce * sa, dy = se, dz = ce * ca;
+  let rx = dz, rz = -dx;
+  const rlen = Math.hypot(rx, rz);
+  if (rlen < 1e-8) { rx = ca; rz = -sa; } else { rx /= rlen; rz /= rlen; }
+  const ux = dy * rz, uy = dz * rx - dx * rz, uz = -dy * rx;
+  let R = -Infinity;
+  for (let p = 0, o = 0; p < nPts; p++, o += 3) {
+    const px = xyz[o] - tx, py = xyz[o + 1] - ty, pz = xyz[o + 2] - tz;
+    const cx = rx * px + rz * pz;
+    const cy = ux * px + uy * py + uz * pz;
+    const along = dx * px + dy * py + dz * pz;
+    const r = along + Math.max(Math.abs(cx) * invH, Math.abs(cy) * invV, 0);
+    if (r > R) R = r;
+  }
+  return R;
+}
+
+const limitOf = (margin) => 1 - 2 * margin;
+
+// Static envelope: the largest required radius over the sampled azimuths and elevations.
 export function fitRadius({ points, target, fov, aspect, azSamples, els, margin, minRadius }) {
   const xyz = asFlat(points);
   const nPts = (xyz.length / 3) | 0;
   const n = azSamples | 0;
-  const limit = 1 - 2 * margin;
+  const limit = limitOf(margin);
   const tanHalf = Math.tan((fov * DEG) / 2);
   const invH = 1 / (limit * aspect * tanHalf);
   const invV = 1 / (limit * tanHalf);
@@ -66,24 +92,20 @@ export function fitRadius({ points, target, fov, aspect, azSamples, els, margin,
   let R = minRadius;
   for (let i = 0; i < n; i++) {
     const az = (2 * Math.PI * i) / n;
-    const ca = Math.cos(az), sa = Math.sin(az);
     for (let e = 0; e < els.length; e++) {
-      const el = els[e];
-      const ce = Math.cos(el), se = Math.sin(el);
-      const dx = ce * sa, dy = se, dz = ce * ca;
-      let rx = dz, rz = -dx;
-      const rlen = Math.hypot(rx, rz);
-      if (rlen < 1e-8) { rx = ca; rz = -sa; } else { rx /= rlen; rz /= rlen; }
-      const ux = dy * rz, uy = dz * rx - dx * rz, uz = -dy * rx;
-      for (let p = 0, o = 0; p < nPts; p++, o += 3) {
-        const px = xyz[o] - tx, py = xyz[o + 1] - ty, pz = xyz[o + 2] - tz;
-        const cx = rx * px + rz * pz;
-        const cy = ux * px + uy * py + uz * pz;
-        const along = dx * px + dy * py + dz * pz;
-        const r = along + Math.max(Math.abs(cx) * invH, Math.abs(cy) * invV, 0);
-        if (r > R) R = r;
-      }
+      const r = poseSolve(xyz, nPts, az, els[e], tx, ty, tz, invH, invV);
+      if (r > R) R = r;
     }
   }
   return R;
+}
+
+// Dynamic term: the radius one specific pose needs. Called once per frame by holo.js.
+export function fitRadiusForPose({ points, target, fov, aspect, az, el, margin, minRadius = 0 }) {
+  const xyz = asFlat(points);
+  const nPts = (xyz.length / 3) | 0;
+  const limit = limitOf(margin);
+  const tanHalf = Math.tan((fov * DEG) / 2);
+  const r = poseSolve(xyz, nPts, az, el, target[0], target[1], target[2], 1 / (limit * aspect * tanHalf), 1 / (limit * tanHalf));
+  return r > minRadius ? r : minRadius;
 }

@@ -1,7 +1,7 @@
 // Headless check of the orbit-camera fit: the smallest radius that keeps a point set
 // inside the stage inset by a margin, at every sampled azimuth and listed elevation.
 // Run: node js/fit.test.mjs
-import { fitRadius, projectCorner } from './fit.js';
+import { fitRadius, fitRadiusForPose, projectCorner } from './fit.js';
 
 let failures = 0;
 const fail = (m) => { failures++; console.error('FAIL', m); };
@@ -75,6 +75,45 @@ const dOpts = { target: [-0.0868, -0.0205 + 0.2606, 0.0536], fov: 34, aspect: 1.
 const RdHull = fitRadius({ ...dOpts, points: hull });
 const RdBox = fitRadius({ ...dOpts, points: aabbOf(hull) });
 RdHull < RdBox ? ok(`d: sampled hull radius ${RdHull.toFixed(4)} < AABB-corner radius ${RdBox.toFixed(4)} at aspect 1.2`) : fail(`d: expected hull < AABB at aspect 1.2 (hull ${RdHull}, AABB ${RdBox})`);
+
+// (e) envelope invariant: inside the auto-orbit envelope no pose needs more than the static fitRadius,
+//     so the untouched orbit runs at a constant radius (the dynamic term never fires).
+// Hero envelope: el0 0.23, bobAmp 0.03, hover pitch 0.05 → el in [0.15, 0.31].
+// The glow ellipses at y = 0 are what bind at a tilted drag pose, so the synthetic set here carries
+// them too (hero-mesh.js: half-extents 0.275 x 0.16 around the tyre contacts).
+function glowRing(cx, cz, n) {
+  const pts = [];
+  for (let i = 0; i < n; i++) { const t = (2 * Math.PI * i) / n; pts.push([cx + 0.275 * Math.cos(t), 0, cz + 0.16 * Math.sin(t)]); }
+  return pts;
+}
+const hullGlow = [...hull, ...glowRing(0.2970, -0.0062, 16), ...glowRing(-0.3562, -0.0066, 16)];
+const heroTarget = [-0.0868, -0.0205 + 0.2606, 0.0536];
+const envEls = [0.15, 0.23, 0.31];
+const envOpts = { points: hullGlow, target: heroTarget, fov: 34, aspect: 1.2, margin: 0.04, minRadius: 1.2912 };
+const Renv = fitRadius({ ...envOpts, azSamples: 36, els: envEls });
+let worstOver = -Infinity, worstPose = null;
+for (let i = 0; i < 36; i++) {
+  const az = (2 * Math.PI * i) / 36;
+  for (const el of envEls) {
+    const need = fitRadiusForPose({ ...envOpts, az, el });
+    if (need - Renv > worstOver) { worstOver = need - Renv; worstPose = { az, el, need }; }
+  }
+}
+worstOver <= 1e-6
+  ? ok(`e: every envelope pose needs ≤ fitRadius ${Renv.toFixed(4)} (worst excess ${worstOver.toExponential(2)})`)
+  : fail(`e: envelope pose az ${worstPose.az.toFixed(3)} el ${worstPose.el} needs ${worstPose.need.toFixed(4)} > fitRadius ${Renv.toFixed(4)}`);
+
+// (f) a drag-extreme pose outside the envelope needs strictly more than the envelope fitRadius,
+//     so the dynamic dolly-back is live (elMax 0.62 is only reachable by dragging).
+let dragBest = -Infinity, dragPose = null;
+for (let i = 0; i < 36; i++) {
+  const az = (2 * Math.PI * i) / 36;
+  const need = fitRadiusForPose({ ...envOpts, az, el: 0.62 });
+  if (need > dragBest) { dragBest = need; dragPose = az; }
+}
+dragBest > Renv + 1e-6
+  ? ok(`f: drag extreme el 0.62 az ${dragPose.toFixed(3)} needs ${dragBest.toFixed(4)} > envelope ${Renv.toFixed(4)}`)
+  : fail(`f: expected a drag-extreme pose to need more than the envelope radius (got ${dragBest}, envelope ${Renv})`);
 
 if (failures) { console.error(`\n${failures} failure(s)`); process.exit(1); }
 console.log('\nall fit checks passed');
