@@ -1,25 +1,25 @@
-// hero-mesh.js: the hero bicycle as a real 3D object reconstructed from the approved render
-// (assets/bike.glb, TRELLIS-2 from assets/hero-bike.jpg), on the shared hologram engine.
-// Opens in the render's own pose (camera and anchors from tools/match-view.html), orbits, drags, hovers;
+// hero-mesh.js: the hero bicycle as a real 3D object — the Meshy v3 bike (3d/v3/README.md)
+// copied to assets/bike.glb — on the shared hologram engine.
+// Opens in the render's own pose (camera and anchors from 3d/v3/view_v3.json), orbits, drags, hovers;
 // click a surface to inspect it and highlight its manifest row. Falls back to the render image.
 import { createScene } from './holo.js';
 import { COLORS } from './colors.js';
 import { PATCHES, ROLES, KIND_NOTES, REVEAL_ORDER } from './bike.js';
 
-// From tools/match-view.html against assets/bike.glb (mesh-local, centred; bike length is 1.0)
-const VIEW = { az: 0.4584, el: 0.26, D: 1.4103, target: [0.0755, -0.0034, -0.0363], fov: 34 };
-const FLOOR_Y = -0.2627; // tire contact height in mesh coordinates
+// From 3d/v3/view_v3.json (match-view against the Meshy v3 bike; mesh-local, centred; bike length is 1.0)
+const VIEW = { az: -2.5416, el: 0.23, D: 1.2912, target: [-0.0868, -0.0205, 0.0536], fov: 34 };
+const FLOOR_Y = -0.2606; // mesh min Y (tyre bottoms); GLB POSITION min [-0.5, -0.26057, -0.19184]
 const ANCHORS = {
-  tire_r:  { kind: 'CONTACT',  p: [-0.3255, -0.2627,  0.0015], offset: [-30, 46] },
-  tire_f:  { kind: 'CONTACT',  p: [ 0.3410, -0.2553,  0.0087], offset: [30, 46] },
-  crank:   { kind: 'ROTATION', p: [-0.0536, -0.1063,  0.0088], offset: [-70, 40] },
-  pedal_l: { kind: 'CONTACT',  p: [-0.1347, -0.0333,  0.0042], offset: [-56, -40], normal: [0, 0, 1] },
-  pedal_r: { kind: 'CONTACT',  p: [ 0.0210, -0.2006, -0.0671], offset: [56, 36], normal: [0, 0, -1] },
-  saddle:  { kind: 'SUPPORT',  p: [-0.1694,  0.2512, -0.0348], offset: [-40, -60] },
-  grip_l:  { kind: 'GRIP',     p: [ 0.2582,  0.2596, -0.2290], offset: [40, -56], normal: [0, 0, -1] },
-  grip_r:  { kind: 'GRIP',     p: [ 0.2491,  0.2646,  0.2289], offset: [40, -56], normal: [0, 0, 1] },
-  hub_f:   { kind: 'ROTATION', p: [ 0.3224, -0.0495,  0.0190], offset: [64, 10] },
-  headset: { kind: 'HINGE',    p: [ 0.2395,  0.1894, -0.0057], offset: [70, -30] },
+  tire_r:  { kind: 'CONTACT',  p: [ 0.2970, -0.2577, -0.0062], offset: [-30, 46] },
+  tire_f:  { kind: 'CONTACT',  p: [-0.3562, -0.2249, -0.0066], offset: [30, 46] },
+  crank:   { kind: 'ROTATION', p: [ 0.0042, -0.1039, -0.0276], offset: [-70, 40] },
+  pedal_l: { kind: 'CONTACT',  p: [ 0.0734, -0.0390, -0.0436], offset: [-56, -40], normal: [0, 0, -1] },
+  pedal_r: { kind: 'CONTACT',  p: [-0.0184, -0.2014,  0.0720], offset: [56, 36], normal: [0, 0, 1] },
+  saddle:  { kind: 'SUPPORT',  p: [ 0.1068,  0.2359, -0.0029], offset: [-40, -60] },
+  grip_l:  { kind: 'GRIP',     p: [-0.2515,  0.2487,  0.1891], offset: [40, -56], normal: [0, 0, 1] },
+  grip_r:  { kind: 'GRIP',     p: [-0.2559,  0.2496, -0.1388], offset: [40, -56], normal: [0, 0, -1] },
+  hub_f:   { kind: 'ROTATION', p: [-0.3284, -0.0590,  0.0124], offset: [64, 10] },
+  headset: { kind: 'HINGE',    p: [-0.2381,  0.1563,  0.0101], offset: [70, -30] },
 };
 
 const root = document.querySelector('[data-hero]');

@@ -1,16 +1,25 @@
 # bake_v3.py: project the approved render (assets/hero-bike.jpg) onto the Meshy mesh (3d/v2/bike.glb)
-# through the camera found by tools/match-view.html, bake to the mesh's own UV map, export 3d/v3/bike.glb.
+# through the camera in 3d/v3/view_v2.json, bake luminance-only (tinted with the wire colour) plus painted
+# action-surface patches to the mesh's own UV map, export 3d/v3/bike.glb.
+# Paths are derived from this script's location so the bake is self-contained in the repo.
 import bpy, os, json, math, mathutils, time
-SCR = r"C:\Users\davek\AppData\Local\Temp\claude\C--Fable-5-1\dd6687c8-3427-41f7-803e-27424ab99b87\scratchpad"
-SRC = r"C:\WEB\chewi-ai\3d\v2\bike.glb"
-IMG = r"C:\WEB\chewi-ai\assets\hero-bike.jpg"
-OUT = r"C:\WEB\chewi-ai\3d\v3\bike.glb"
-VIEW = json.load(open(os.path.join(SCR, "view_v2.json")))["camera"]  # three.js centred frame, Y up
+
+TOOLS = os.path.dirname(os.path.abspath(__file__))
+ROOT = os.path.dirname(TOOLS)
+SRC = os.path.join(ROOT, "3d", "v2", "bike.glb")
+IMG = os.path.join(ROOT, "assets", "hero-bike.jpg")
+OUT = os.path.join(ROOT, "3d", "v3", "bike.glb")
+VIEW_PATH = os.path.join(ROOT, "3d", "v3", "view_v2.json")
+BAKE_PNG = os.path.join(ROOT, "3d", "v3", "bake.png")
+
+view_data = json.load(open(VIEW_PATH))
+VIEW = view_data["camera"]  # three.js centred frame, Y up; v2 match-view (the frame the bake projects in)
 IMG_W, IMG_H, FOV = 1792, 1008, VIEW.get("fov", 34)
 TEX = int(os.environ.get("V3_TEX", "2048"))
 WIRE = (0.16, 0.36, 0.72)  # fallback colour where the render has no pixel for the surface (dark blueprint blue)
 DARK = float(os.environ.get("V3_DARK", "0.10"))  # luminance below this counts as background
 
+print("PATHS", "root", ROOT, "src", SRC, "img", IMG, "view", VIEW_PATH, "out", OUT)
 os.makedirs(os.path.dirname(OUT), exist_ok=True)
 bpy.ops.wm.read_factory_settings(use_empty=True)
 bpy.ops.import_scene.gltf(filepath=SRC)
@@ -52,7 +61,7 @@ KIND_RGB = {"CONTACT": (0x4a, 0xde, 0x80), "GRIP": (0x38, 0xd6, 0xe0), "SUPPORT"
 RADIUS = {"saddle": (0.23, 0.12, 0.10), "grip_l": (0.06, 0.12, 0.06), "grip_r": (0.06, 0.12, 0.06), "headset": (0.055,) * 3, "hub_f": (0.06,) * 3,
           "crank": (0.075,) * 3, "pedal_l": (0.05,) * 3, "pedal_r": (0.05,) * 3, "tire_r": (0.0,) * 3, "tire_f": (0.0,) * 3}
 def srgb_to_lin(c): c /= 255.0; return c / 12.92 if c <= 0.04045 else ((c + 0.055) / 1.055) ** 2.4
-anchors = [(a["id"], a["kind"], three_to_b(a["p"])) for a in json.load(open(os.path.join(SCR, "view_v2.json")))["anchors"]]
+anchors = [(a["id"], a["kind"], three_to_b(a["p"])) for a in view_data["anchors"]]
 col = o.data.color_attributes.new(name="patch", type="FLOAT_COLOR", domain="POINT")
 painted = {}
 for i, v in enumerate(o.data.vertices):
@@ -70,7 +79,9 @@ for i, v in enumerate(o.data.vertices):
         col.data[i].color = (0.0, 0.0, 0.0, 0.0)
 print("PAINTED", painted)
 
-# material: photo sampled through 'proj', dark/outside pixels replaced by the wire blue, patches on top; emission only
+# material: photo sampled through 'proj' contributes LUMINANCE ONLY, tinted with the wire colour:
+#   colour = WIRE * clamp(lum / 0.55, 0.35, 1.6)
+# pixels outside the frame (CLIP) or darker than DARK fall back to plain WIRE; patches stay category colour
 photo = bpy.data.images.load(IMG)
 mat = bpy.data.materials.new("bake"); mat.use_nodes = True; nt = mat.node_tree
 for n in list(nt.nodes): nt.nodes.remove(n)
@@ -78,11 +89,22 @@ uvn = nt.nodes.new("ShaderNodeUVMap"); uvn.uv_map = "proj"
 tex = nt.nodes.new("ShaderNodeTexImage"); tex.image = photo; tex.extension = "CLIP"; tex.interpolation = "Linear"
 bw = nt.nodes.new("ShaderNodeRGBToBW")
 gt = nt.nodes.new("ShaderNodeMath"); gt.operation = "GREATER_THAN"; gt.inputs[1].default_value = DARK
+div = nt.nodes.new("ShaderNodeMath"); div.operation = "DIVIDE"; div.inputs[1].default_value = 0.55
+cl = nt.nodes.new("ShaderNodeClamp")
+cl.inputs["Min"].default_value = 0.35
+cl.inputs["Max"].default_value = 1.6
+scale = nt.nodes.new("ShaderNodeVectorMath"); scale.operation = "SCALE"
+scale.inputs[0].default_value = WIRE
 mix = nt.nodes.new("ShaderNodeMix"); mix.data_type = "RGBA"; mix.inputs["A"].default_value = (*WIRE, 1.0)
 emit = nt.nodes.new("ShaderNodeEmission"); outn = nt.nodes.new("ShaderNodeOutputMaterial")
 nt.links.new(uvn.outputs["UV"], tex.inputs["Vector"])
-nt.links.new(tex.outputs["Color"], bw.inputs["Color"]); nt.links.new(bw.outputs["Val"], gt.inputs[0])
-nt.links.new(gt.outputs["Value"], mix.inputs["Factor"]); nt.links.new(tex.outputs["Color"], mix.inputs["B"])
+nt.links.new(tex.outputs["Color"], bw.inputs["Color"])
+nt.links.new(bw.outputs["Val"], gt.inputs[0])
+nt.links.new(bw.outputs["Val"], div.inputs[0])
+nt.links.new(div.outputs["Value"], cl.inputs[0])
+nt.links.new(cl.outputs["Result"], scale.inputs[3])  # Scale
+nt.links.new(gt.outputs["Value"], mix.inputs["Factor"])
+nt.links.new(scale.outputs["Vector"], mix.inputs["B"])
 attr = nt.nodes.new("ShaderNodeVertexColor"); attr.layer_name = "patch"
 mix2 = nt.nodes.new("ShaderNodeMix"); mix2.data_type = "RGBA"
 nt.links.new(mix.outputs["Result"], mix2.inputs["A"]); nt.links.new(attr.outputs["Color"], mix2.inputs["B"]); nt.links.new(attr.outputs["Alpha"], mix2.inputs["Factor"])
@@ -98,8 +120,8 @@ sc.render.bake.margin = 6; sc.render.bake.use_clear = True
 t0 = time.time()
 bpy.ops.object.bake(type="EMIT", use_clear=True, margin=6)
 print("BAKED", TEX, "sec", round(time.time() - t0, 1))
-baked_path = os.path.join(SCR, "v3_bake.png"); baked.filepath_raw = baked_path; baked.file_format = "PNG"; baked.save()
-print("SAVED", baked_path)
+baked.filepath_raw = BAKE_PNG; baked.file_format = "PNG"; baked.save()
+print("SAVED", BAKE_PNG)
 
 # final material for export: baked map as base colour (the hero shader reads material.map)
 o.modifiers.remove(mod)
@@ -107,7 +129,7 @@ o.data.uv_layers.remove(o.data.uv_layers["proj"])
 o.data.color_attributes.remove(o.data.color_attributes["patch"])
 mat2 = bpy.data.materials.new("bike_v3"); mat2.use_nodes = True; nt2 = mat2.node_tree
 bsdf = nt2.nodes["Principled BSDF"]; bsdf.inputs["Roughness"].default_value = 0.6; bsdf.inputs["Metallic"].default_value = 0.0
-ti = nt2.nodes.new("ShaderNodeTexImage"); ti.image = bpy.data.images.load(baked_path)
+ti = nt2.nodes.new("ShaderNodeTexImage"); ti.image = bpy.data.images.load(BAKE_PNG)
 nt2.links.new(ti.outputs["Color"], bsdf.inputs["Base Color"])
 o.data.materials.clear(); o.data.materials.append(mat2)
 # normalise: bike length (X) = 1.0, centred, like the hero's TRELLIS mesh frame
