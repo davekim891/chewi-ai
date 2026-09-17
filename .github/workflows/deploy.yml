@@ -30,6 +30,8 @@ jobs:
         run: node js/grasp.test.mjs
       - name: Stage public files and verify every reference resolves
         run: node tools/stage.mjs _site
+        env:
+          PUBLISH_CNAME: '1'
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
