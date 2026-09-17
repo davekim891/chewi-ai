@@ -1,10 +1,10 @@
 // hero-mesh.js: the hero bicycle as a real 3D object — the Meshy v3 bike (3d/v3/README.md)
 // copied to assets/bike.glb — on the shared hologram engine.
 // Opens in the render's own pose (camera and anchors from 3d/v3/view_v3.json), orbits, drags, hovers;
-// click a surface to inspect it and highlight its manifest row. Falls back to the render image.
+// click a surface to inspect it. Falls back to the render image.
 import { createScene } from './holo.js';
 import { COLORS } from './colors.js';
-import { PATCHES, ROLES, KIND_NOTES, REVEAL_ORDER } from './bike.js';
+import { ROLES, KIND_NOTES, REVEAL_ORDER } from './bike.js';
 
 // From 3d/v3/view_v3.json (match-view against the Meshy v3 bike; mesh-local, centred; bike length is 1.0)
 const VIEW = { az: -2.5416, el: 0.23, D: 1.2912, target: [-0.0868, -0.0205, 0.0536], fov: 34 };
@@ -25,22 +25,16 @@ const ANCHORS = {
 
 const root = document.querySelector('[data-hero]');
 const detail = root && root.querySelector('.hero-detail');
-const byId = Object.fromEntries(PATCHES.map((p) => [p.id, p]));
 
 function showDetail(id) {
   if (!detail) return;
-  for (const tr of document.querySelectorAll('.manifest tr[data-id]')) {
-    const on = !!id && tr.dataset.id === id;
-    tr.classList.toggle('is-active', on);
-    if (on) tr.style.setProperty('--c', COLORS[ANCHORS[id].kind]); else tr.style.removeProperty('--c');
-  }
   if (!id) { detail.hidden = true; return; }
-  const a = ANCHORS[id], p = byId[id];
+  const a = ANCHORS[id];
   detail.style.setProperty('--c', COLORS[a.kind]);
   detail.querySelector('.tag-kind').textContent = a.kind;
   detail.querySelector('.tag-kind').style.color = COLORS[a.kind];
   detail.querySelector('.tag-id').textContent = id;
-  detail.querySelector('.hero-detail-role').textContent = ROLES[a.kind] + (p ? `, attached to ${p.joint}` : '');
+  detail.querySelector('.hero-detail-role').textContent = ROLES[a.kind];
   detail.querySelector('.hero-detail-note').textContent = KIND_NOTES[a.kind];
   detail.hidden = false;
 }

@@ -55,22 +55,7 @@
           <p class="hero-detail-kind"><span class="tag-kind"></span><span class="tag-id"></span></p>
           <p class="hero-detail-role"></p>
           <p class="hero-detail-note"></p>
-          <a class="hero-detail-link" href="#manifest">Row in the manifest</a>
         </aside>
-      </div>
-    </section>
-
-    <section class="manifest-section" id="manifest">
-      <div class="manifest-copy">
-        <h2>What a compiled asset carries</h2>
-        <p class="lede">Every surface Chewi compiles travels with the asset as machine-readable data: what it is, what it is for, and which joint it is rigidly attached to. This is the manifest of the bicycle at the top of the page, <span class="manifest-count">10</span> action surfaces.</p>
-        <p class="caption">Illustrative manifest for the demo asset above; joint identifiers follow the demo rig's naming. Production manifests also bind each surface to geometry and carry constraints, confidence and provenance.</p>
-      </div>
-      <div class="manifest-wrap">
-        <table class="manifest">
-          <thead><tr><th>id</th><th>kind</th><th>role</th><th>attached_to</th></tr></thead>
-          <tbody></tbody>
-        </table>
       </div>
     </section>
 
@@ -107,7 +92,7 @@
       <p class="lede">Foundation models increasingly understand objects, behaviours and relationships in the physical world. Existing 3D data is inconsistent, or structured for human production workflows rather than for AI reasoning. Chewi closes that gap.</p>
       <ol class="flow" aria-label="How Chewi sits between 3D data and AI">
         <li><span class="flow-k">3D asset</span><span class="flow-v">Geometry and structure, as it exists in the library today.</span></li>
-        <li><span class="flow-k">Chewi</span><span class="flow-v">A semantic correspondence layer, compiled automatically and validated.</span></li>
+        <li><span class="flow-k">Chewi</span><span class="flow-v">A semantic correspondence layer that transforms 3D assets into structured data AI can understand.</span></li>
         <li><span class="flow-k">AI / world model</span><span class="flow-v">Understands, reasons about and interacts with the object.</span></li>
       </ol>
     </section>
@@ -149,8 +134,8 @@
         <li><h3>Spatial computing &amp; AI glasses</h3><p>Machine understanding of objects, components and relationships.</p></li>
       </ul>
       <div class="where-notes">
-        <div><h3>Built for 3D data at scale</h3><p>Chewi is being developed to automate semantic structuring across large, heterogeneous asset libraries, reducing manual preparation for AI, simulation and world-model applications. As the library grows, each accepted asset becomes a better prior for the next.</p></div>
-        <div><h3>Precision matched to the application</h3><p>Different applications need different levels of semantic and physical precision. Chewi is designed for high-volume automation through higher-assurance workflows, with tighter validation, confidence scores and expert review where the application demands it.</p></div>
+        <div><h3>Built to scale across diverse 3D asset libraries</h3><p>Chewi is being developed to help transform existing 3D assets into structured, machine-understandable data for AI, simulation and spatial applications, reducing the manual work required to prepare them.</p></div>
+        <div><h3>Precision matched to the application</h3><p>Different applications need different levels of semantic and physical precision.</p></div>
       </div>
     </section>
 
@@ -166,31 +151,16 @@
         </div>
       </div>
         <div>
-          <h2>Two standards, kept separate</h2>
-          <p class="lede">An asset that artists and agents can edit is not automatically one that can take part in a shared simulation. We think of them as two bars, each with its own evidence.</p>
+          <h2>Structure AI can reason about. Interaction AI can act on.</h2>
+          <p class="lede">Chewi adds structured information about what an object is made of, how its parts relate, and how those parts can be interacted with, creating a richer bridge between AI models and 3D assets.</p>
+          <ol class="chain" aria-label="How Chewi connects 3D assets to AI">
+            <li><span class="chain-label">3D asset</span><span class="chain-arrow" aria-hidden="true">→</span></li>
+            <li class="chain-self"><span class="chain-label">Chewi</span><span class="chain-arrow" aria-hidden="true">→</span></li>
+            <li><span class="chain-label">Understand</span><span class="chain-arrow" aria-hidden="true">→</span></li>
+            <li><span class="chain-label">Reason</span><span class="chain-arrow" aria-hidden="true">→</span></li>
+            <li><span class="chain-label">Interact</span></li>
+          </ol>
           <p class="caption">A hand and a cup, each a usable asset on its own. The grasp only works when their contact surfaces, scale and articulation agree. Live, drag to orbit.</p>
-        </div>
-      </div>
-      <div class="standards-cols">
-        <div>
-          <h3>Production editability</h3>
-          <p>Can humans and AI agents modify the asset reliably?</p>
-          <ul>
-            <li><b>Meaning</b> identifiable parts, landmarks, joints and material regions.</li>
-            <li><b>Correspondence</b> stable references across revisions, even when topology changes.</li>
-            <li><b>Constraints</b> protected features, attachments, symmetry, permitted deformation.</li>
-            <li><b>Review and recovery</b> recorded changes, validation results, reversible versions.</li>
-          </ul>
-        </div>
-        <div>
-          <h3>Shared-world interaction</h3>
-          <p>Can the asset interact consistently with other participants under the same rules?</p>
-          <ul>
-            <li><b>Conventions</b> common units and coordinate frames.</li>
-            <li><b>Physics</b> collision geometry, physical properties, joint limits.</li>
-            <li><b>Actions</b> interaction points, supported actions, rules for changing state.</li>
-            <li><b>Evidence</b> from contact, loading and articulation over time, not from a rendering check.</li>
-          </ul>
         </div>
       </div>
     </section>
@@ -218,6 +188,5 @@
   </script>
   <script type="module" src="js/hero-mesh.js"></script>
   <script type="module" src="js/scenes.js"></script>
-  <script type="module" src="js/manifest.js"></script>
 </body>
 </html>

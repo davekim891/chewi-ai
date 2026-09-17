@@ -199,7 +199,7 @@ export function buildGrid() {
 }
 
 // ---- compiled action surfaces ---------------------------------------------
-// joint: the canonical joint the surface is rigidly attached to (shown in the manifest).
+// joint: the canonical joint the surface is rigidly attached to.
 // wire: the named wire part the anchor must sit on (a FRAME_PARTS key, or 'crank' / 'pedal').
 // anchorRef: where the anchor is expected (parent-local), so a moved anchor fails the test.
 // parent: 'frame' | 'crank' | 'pedalL' | 'pedalR' (pedal frames sit at the pedal spindles,
@@ -275,7 +275,7 @@ export const PATCHES = [
   },
 ];
 
-// What each kind means, in the page's own words (detail card + manifest).
+// What each kind means, in the page's own words (detail card).
 export const ROLES = { CONTACT: 'load-bearing contact', GRIP: 'graspable surface', SUPPORT: 'seating surface', ROTATION: 'rotation axis', HINGE: 'steering axis' };
 export const KIND_NOTES = {
   CONTACT: 'Where load passes between the asset and the world or a rider. Used for grounding, foot placement and physics.',

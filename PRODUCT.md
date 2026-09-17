@@ -16,7 +16,7 @@ Chewi automatically creates structured semantic correspondence between 3D assets
 
 ## Positioning
 
-"The intelligence layer between AI and the 3D world." The mechanism is compiled action surfaces on real assets (the C1/C2 work: contact bands, grips, seat surfaces, pedal tops on a bicycle; pelvis, foot sole, wing-front on a rider), validated through animation, not just object or part labels. The one-sheet's own framing: precision matched to the application, automated at library scale. Claims about market size, customers or funding are NOT on this surface.
+"The intelligence layer between AI and the 3D world." The mechanism is compiled action surfaces on real assets (the C1/C2 work: contact bands, grips, seat surfaces, pedal tops on a bicycle; pelvis, foot sole, wing-front on a rider). The one-sheet's own framing: precision matched to the application. Claims about market size, customers or funding are NOT on this surface.
 
 ## Operating Context
 
@@ -30,6 +30,7 @@ The page is a pre-launch placeholder for chewi.ai (domain not yet purchased as o
 - No fabricated customers, quotes, metrics or partner logos. The one-sheet's "We're looking for design partners" is the only call to collaboration.
 - Terminology used by the team: C1 (skeleton / pivots), C2 (compiled action surfaces / contact patches), semantic correspondence, action surfaces, affordances.
 - Undecided: whether a second-language version or an investor-specific page will ever be needed (not for this surface).
+- GO's 2026-09-18 direction: no schema or manifest fields on the page, no explanation of how the system improves internally, customer benefit over methodology, and no automation or validation claims until the automation ceiling is proven (say "being developed to").
 
 ## Brand Commitments
 

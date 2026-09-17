@@ -39,6 +39,7 @@ One radius: 6px on interactive and framed elements, 4px on tag chips. Hairline b
 - Eyebrow: mono, 12px, 0.18em, uppercase, accent. Used once (hero).
 - Action: solid accent button, dark ink, 14px x 22px padding, arrow glyph. One label for the contact intent site-wide: "Curious? Get in touch".
 - Tag: mono chip, 1px border in the surface colour, kind in caps 11px + id 10px muted. Leader line 1px in the same colour to the projected anchor.
+- Chain: mono chips, 12px uppercase 0.12em, 1px `--hairline` (Chewi chip `--fg` on `--fg-muted` border), radius 4px; arrows sit outside the chip, muted, untracked.
 - Layer cell: elevated background, hairline border, h3 + one line. Two cells carry a 9% semantic tint.
 
 ## Motion

@@ -8,7 +8,7 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const out = resolve(process.argv[2] || '_site');
 // CNAME is added only when PUBLISH_CNAME=1 (set it once chewi.ai's DNS points at GitHub Pages);
 // with the file present, Pages serves the site only on the custom domain.
-const PUBLIC = ['index.html', ...(process.env.PUBLISH_CNAME === '1' ? ['CNAME'] : []), 'css', 'fonts', 'assets', 'js/holo.js', 'js/fit.js', 'js/hero-mesh.js', 'js/bike.js', 'js/manifest.js', 'js/hand.js', 'js/scenes.js', 'js/colors.js', 'js/grasp-layout.js'];
+const PUBLIC = ['index.html', ...(process.env.PUBLISH_CNAME === '1' ? ['CNAME'] : []), 'css', 'fonts', 'assets', 'js/holo.js', 'js/fit.js', 'js/hero-mesh.js', 'js/bike.js', 'js/hand.js', 'js/scenes.js', 'js/colors.js', 'js/grasp-layout.js'];
 const EXCLUDE = ['assets/og.svg', 'assets/hero-fallback.svg'];
 
 rmSync(out, { recursive: true, force: true });

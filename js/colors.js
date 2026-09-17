@@ -1,4 +1,4 @@
-// colors.js: the one place the surface-category colours live. Read by the scenes, the manifest and the static renderer.
+// colors.js: the one place the surface-category colours live. Read by the scenes and the static renderer.
 export const COLORS = {
   CONTACT: '#4ade80',
   GRIP: '#38d6e0',
