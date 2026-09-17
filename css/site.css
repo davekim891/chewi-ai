@@ -185,7 +185,7 @@ section, footer { padding: 96px var(--gutter); }
 }
 .demo-copy .lede { max-width: 30rem; }
 .demo-copy .caption { margin-top: 22px; }
-.demo h2, .layers h2, .close h2 { font-size: clamp(1.7rem, 2.6vw, 3.1rem); }
+.demo h2, .layers h2, .close h2, .problem h2, .where h2, .standards h2 { font-size: clamp(1.7rem, 2.6vw, 3.1rem); }
 .demo-frame {
   background: var(--bg-elevated);
   border: 1px solid var(--hairline);
