@@ -104,3 +104,48 @@ The page uses no dashes as punctuation; do not introduce any.
 3. UNVERIFIED: every symbol, behavior, or claim you could not confirm.
 4. DEVIATIONS: anything done differently from this statement, and why.
 5. OBSERVED ADJACENT ISSUES: reported, untouched.
+
+## Correction pass (attempt 2) — Dave: "stick with GO's ask, since he will be showing the website"
+
+Pass 1 is snapshot-committed. Its structure stays (manifest section removed, manifest.js deleted, stage list, CSS
+cleanup, standards-cols removed, chain markup with `.chain-label`, manifest-row loop removed, docs). Its WORDING is
+replaced: every orchestrator rewrite or extension is reverted and GO's text is used verbatim, including his
+capitalisation "CHEWI", his periods and his spaced hyphen " - ". The earlier rules "use Chewi" and "no dashes"
+are withdrawn. Copy the strings below character for character.
+
+1. `.where-notes`, first block, exactly:
+   `<div><h3>Built to scale across diverse 3D asset libraries.</h3><p>CHEWI is being developed to scale semantic structuring across large, diverse 3D asset libraries - reducing the manual work required to prepare 3D data for AI. CHEWI is being developed to help transform existing 3D assets into structured, machine-understandable data for AI, simulation and spatial applications.</p></div>`
+   (GO's item 4 sentence replaces the old first sentence in place; his item 2 sentence replaces the old
+   "As the library grows…" sentence in place; his item 2 heading replaces the old h3.)
+2. `.where-notes`, second block: restore the paragraph from `git show main:index.html` exactly, i.e.
+   `<p>Different applications need different levels of semantic and physical precision. Chewi is designed for high-volume automation through higher-assurance workflows, with tighter validation, confidence scores and expert review where the application demands it.</p>`
+   GO did not ask for this change.
+3. `js/hero-mesh.js`: restore the role line exactly as on `main`:
+   ``detail.querySelector('.hero-detail-role').textContent = ROLES[a.kind] + (p ? `, attached to ${p.joint}` : '');``
+   and keep/restore `byId` / `p` as on `main`. Keep the removal of the `.manifest tr[data-id]` loop and the
+   `#manifest` link (they point at the deleted section). README: put `joint` back in the detail-card description.
+4. Standards section:
+   - `<h2>Structure AI can reason about. Interaction AI can act on.</h2>` (unchanged)
+   - `<p class="lede">CHEWI adds structured information about what an object is made of, how its parts relate, and how those parts can be interacted with - creating a richer bridge between AI models and 3D assets.</p>`
+   - Chain labels, in order, exactly: `3D Asset`, `CHEWI`, `Understand`, `Reason`, `Interact`. Update the `ol`
+     aria-label to `How CHEWI connects 3D assets to AI`.
+   - CSS: remove `text-transform: uppercase` and the `letter-spacing` from `.chain-label` so GO's capitalisation
+     shows as written. Everything else in the chain CSS stays.
+   - Delete the caption paragraph under the heading (`<p class="caption">A hand and a cup, each a usable asset on
+     its own…</p>`). GO asked for this section's text to be replaced by his heading and sentence. Keep the grasp
+     hologram markup untouched.
+5. Problem section flow: keep pass 1's line (it is GO's verbatim text):
+   `A semantic correspondence layer that transforms 3D assets into structured data AI can understand.`
+6. Docs: PRODUCT.md's bullet should say the page copy for these sections is GO's verbatim wording from
+   2026-09-18; revert any PRODUCT.md or DESIGN.md wording that claimed a broader rule than GO's four items
+   (e.g. do not state "no automation claims anywhere"; the Precision paragraph keeps its automation sentence).
+   Positioning: restore the removed phrases from `main` unless they are page copy (they are not; PRODUCT.md is
+   internal). Keep HANDOFF's sentence accurate to the final state.
+
+### Success criteria for this pass (replace the earlier grep list)
+- Tests and stage as before, all passing; `_site/` removed afterwards.
+- In staged `index.html`: each GO string above appears exactly once (report a table of string → count);
+  zero matches for `manifest`, `attached_to`, `provenance`, `better prior`, `heterogeneous`, `Two standards`,
+  `topology`, `compiled automatically`, `A hand and a cup`; `high-volume automation` appears exactly once (restored).
+- `git --no-pager diff main -- js/hero-mesh.js` shows only the removed manifest loop and header comment.
+- Constraints from the original statement still apply (no commit, no push, protected files untouched).
