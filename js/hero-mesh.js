@@ -4,7 +4,7 @@
 // click a surface to inspect it. Falls back to the render image.
 import { createScene } from './holo.js';
 import { COLORS } from './colors.js';
-import { ROLES, KIND_NOTES, REVEAL_ORDER } from './bike.js';
+import { PATCHES, ROLES, KIND_NOTES, REVEAL_ORDER } from './bike.js';
 
 // From 3d/v3/view_v3.json (match-view against the Meshy v3 bike; mesh-local, centred; bike length is 1.0)
 const VIEW = { az: -2.5416, el: 0.23, D: 1.2912, target: [-0.0868, -0.0205, 0.0536], fov: 34 };
@@ -25,16 +25,17 @@ const ANCHORS = {
 
 const root = document.querySelector('[data-hero]');
 const detail = root && root.querySelector('.hero-detail');
+const byId = Object.fromEntries(PATCHES.map((p) => [p.id, p]));
 
 function showDetail(id) {
   if (!detail) return;
   if (!id) { detail.hidden = true; return; }
-  const a = ANCHORS[id];
+  const a = ANCHORS[id], p = byId[id];
   detail.style.setProperty('--c', COLORS[a.kind]);
   detail.querySelector('.tag-kind').textContent = a.kind;
   detail.querySelector('.tag-kind').style.color = COLORS[a.kind];
   detail.querySelector('.tag-id').textContent = id;
-  detail.querySelector('.hero-detail-role').textContent = ROLES[a.kind];
+  detail.querySelector('.hero-detail-role').textContent = ROLES[a.kind] + (p ? `, attached to ${p.joint}` : '');
   detail.querySelector('.hero-detail-note').textContent = KIND_NOTES[a.kind];
   detail.hidden = false;
 }
