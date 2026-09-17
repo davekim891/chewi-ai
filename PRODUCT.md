@@ -20,13 +20,13 @@ Chewi automatically creates structured semantic correspondence between 3D assets
 
 ## Operating Context
 
-The page is a pre-launch placeholder for chewi.ai (domain not yet purchased as of 2026-09-13). It is reached from outreach emails and calls, so it must load fast, read in one screen, and hold up when shared as a link preview. It will be hosted on GitHub Pages with no backend; contact is a mailto to goburton@playhybrid.com.
+The page is a pre-launch placeholder for chewi.ai (domain not yet purchased as of 2026-09-13). It is reached from outreach emails and calls, so it must load fast, read in one screen, and hold up when shared as a link preview. It will be hosted on GitHub Pages with no backend of our own; contact is a form delivered by Web3Forms to GO's inbox (decided by Dave 2026-09-18). The address is never shown on the page.
 
 ## Capabilities and Constraints
 
 - Coming-soon surface: wordmark, tagline, "Coming soon", one contact action, an explanation of what Chewi compiles, one real demo clip, the approved bicycle render as the hero with live tags, and two live hologram scenes (hand, hand and cup) built on the page's own demo rigs.
 - Confirmed copy from GO: "CHEWI AI", "The intelligence layer between AI and the 3D world.", "Coming Soon", "Curious? Click Here" (contact intent; final label may be reworded but it must stay one contact action).
-- No email-capture backend (decided by Dave 2026-09-13; mailto instead).
+- Contact form delivered by Web3Forms to GO's inbox (decided by Dave 2026-09-18, reversing the 2026-09-13 mailto decision). The address is never shown on the page.
 - No fabricated customers, quotes, metrics or partner logos. The one-sheet's "We're looking for design partners" is the only call to collaboration.
 - Terminology used by the team: C1 (skeleton / pivots), C2 (compiled action surfaces / contact patches), semantic correspondence, action surfaces, affordances.
 - Undecided: whether a second-language version or an investor-specific page will ever be needed (not for this surface).
@@ -59,4 +59,4 @@ The page is a pre-launch placeholder for chewi.ai (domain not yet purchased as o
 
 ## Accessibility & Inclusion
 
-WCAG AA contrast on all text. The hero must remain fully readable with WebGL unavailable and with reduced motion enabled (static fallback image, no autoplaying video). Keyboard-reachable contact link with a visible focus ring.
+WCAG AA contrast on all text. The hero must remain fully readable with WebGL unavailable and with reduced motion enabled (static fallback image, no autoplaying video). Keyboard-reachable contact form with a visible focus ring.

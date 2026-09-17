@@ -51,6 +51,8 @@ Five Opus auditor rounds ran (plan-verified; first KILL for tree churn and publi
 - Several stray python servers from auditors (ports 8741, 8742, 8743, 8777, 8913) may still be running; one on 8742 belongs to another session. Leave them.
 - `git tag`/`commit` need `-c user.name -c user.email` here (no global identity).
 
+Contact: the footer mailto was replaced (2026-09-18) with a Web3Forms form; the access key is still `WEB3FORMS_ACCESS_KEY_PENDING`, so `node tools/stage.mjs _site` fails until a real UUID is set (or `ALLOW_UNCONFIGURED_CONTACT=1` locally).
+
 ## Open items for Dave
 
 1. Domain: buy chewi.ai, then at the registrar add A records for the apex to GitHub Pages' documented IPs (185.199.108.153, 185.199.109.153, 185.199.110.153, 185.199.111.153; confirm against GitHub's current Pages docs) and a CNAME for `www` to `davekim891.github.io`. Then set `PUBLISH_CNAME=1` on the stage step in `.github/workflows/deploy.yml` (or run `gh api -X PUT repos/davekim891/chewi-ai/pages -f cname=chewi.ai`), push, and enable "Enforce HTTPS" in Settings, Pages once the certificate is issued. Until then the `CNAME` file is deliberately left out of the artifact, because with it present Pages serves only on the custom domain.

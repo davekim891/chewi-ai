@@ -18,6 +18,8 @@ then open http://localhost:8732/. The hero loads three.js 0.180.0 from jsdelivr 
 node js/bike.test.mjs
 node js/hand.test.mjs
 node js/grasp.test.mjs
+node js/contact.test.mjs
+node tools/stage-guard.test.mjs
 ```
 
 ## Where things live
@@ -53,6 +55,10 @@ With the local server running:
 ```
 
 Same for `grasp`. `tools/capture.html` also exposes a `<pre id="status">` readout for `--dump-dom` probes.
+
+## Contact form
+
+The footer form posts to Web3Forms. The public `access_key` lives in a hidden input on `index.html`; replace `WEB3FORMS_ACCESS_KEY_PENDING` with the UUID emailed to the destination inbox. `node tools/stage.mjs _site` refuses to stage without a real UUID key, or if any staged file contains `goburton` or `mailto:`. The address leak check is not overridable. For local runs that still use the placeholder, `ALLOW_UNCONFIGURED_CONTACT=1 node tools/stage.mjs _site` skips only the key check.
 
 ## Deploy
 
