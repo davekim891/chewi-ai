@@ -18,6 +18,7 @@ One theme (dark), no light mode. Strategy: restrained neutrals plus one accent, 
 | `--fg` | #e9edf1 | text |
 | `--fg-muted` | #8b95a1 | secondary text |
 | `--accent` | #4da3ff | wordmark "AI", the single action, focus ring |
+| `--danger` | #ff6b6b | form error text and invalid-field borders only |
 | `--c-contact` | #4ade80 | CONTACT surfaces |
 | `--c-grip` | #38d6e0 | GRIP surfaces |
 | `--c-support` | #a78bfa | SUPPORT surfaces |
@@ -38,6 +39,7 @@ One radius: 6px on interactive and framed elements, 4px on tag chips. Hairline b
 - Wordmark: `CHEWI AI`, 15px, 0.22em tracking, "AI" in accent. Alone in the top bar.
 - Eyebrow: mono, 12px, 0.18em, uppercase, accent. Used once (hero).
 - Action: solid accent button, dark ink, 14px x 22px padding, arrow glyph. One label for the contact intent site-wide: "Curious? Get in touch".
+- Contact form: name (required), email (required), company (optional), message (required). Fields sit on `--bg-elevated` with a hairline border; invalid fields and their error text use `--danger`. The submit control is the same solid accent button, labelled "Send message". Sending, success ("Thanks. Your message is on its way.") and failure states stay on the page; the address is never shown. The hero still uses "Curious? Get in touch", which jumps to the form.
 - Tag: mono chip, 1px border in the surface colour, kind in caps 11px + id 10px muted. Leader line 1px in the same colour to the projected anchor.
 - Chain: mono chips, 12px as written (no uppercase transform), 1px `--hairline` (CHEWI chip `--fg` on `--fg-muted` border), radius 4px; arrows sit outside the chip, muted, untracked.
 - Layer cell: elevated background, hairline border, h3 + one line. Two cells carry a 9% semantic tint.

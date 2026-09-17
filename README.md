@@ -18,6 +18,8 @@ then open http://localhost:8732/. The hero loads three.js 0.180.0 from jsdelivr 
 node js/bike.test.mjs
 node js/hand.test.mjs
 node js/grasp.test.mjs
+node js/contact.test.mjs
+node tools/stage-guard.test.mjs
 ```
 
 ## Where things live
@@ -53,6 +55,10 @@ With the local server running:
 ```
 
 Same for `grasp`. `tools/capture.html` also exposes a `<pre id="status">` readout for `--dump-dom` probes.
+
+## Contact form
+
+The footer form posts to FormSubmit (`formsubmit.co`) at `contact@chewi.ai`. Namecheap forwards that role address to GO's inbox; GO's personal address is never in the published tree, and `contact@chewi.ai` is not shown as visible text or a link. The first submission emails an "Activate Form" link to that address; Dave and GO click it after publishing, and nothing is delivered until then. After activation, FormSubmit can replace the address with a random string: put that string in `FORM_ENDPOINT_ID` in `js/contact.js` and in the form `action` on `index.html` (`https://formsubmit.co/` plus the same id). `node tools/stage.mjs _site` refuses to stage unless those two ids match and are allowed, or if any staged file contains `goburton`, `playhybrid.com`, `mailto:` or `web3forms`. The leak and endpoint checks are not overridable.
 
 ## Deploy
 

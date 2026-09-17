@@ -28,6 +28,10 @@ jobs:
         run: node js/hand.test.mjs
       - name: Grasp geometry check
         run: node js/grasp.test.mjs
+      - name: Contact form helpers
+        run: node js/contact.test.mjs
+      - name: Stage-guard leak and endpoint checks
+        run: node tools/stage-guard.test.mjs
       - name: Stage public files and verify every reference resolves
         run: node tools/stage.mjs _site
         env:
