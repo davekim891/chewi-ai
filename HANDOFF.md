@@ -2,6 +2,8 @@
 
 2026-09-18: GO copy pass on `go-copy` dropped the manifest and its schema fields, replaced the two-standards section with GO's heading, lede and chain, and set those sections plus the problem-flow Chewi line to GO's verbatim wording (including CHEWI and spaced hyphens).
 
+2026-09-22: the hero eyebrow is GO's line "IN DEVELOPMENT · SEEKING DESIGN PARTNERS", and the description and og:description now end with "In development, seeking design partners."
+
 Repo: `C:\WEB\chewi-ai`, pushed to https://github.com/davekim891/chewi-ai (PUBLIC, branch `main`, tag `3d_v1`). GitHub Pages is enabled (source: GitHub Actions) and the site is live at https://davekim891.github.io/chewi-ai/ (verified: hero, 27 tags, mesh served as model/gltf-binary, internal docs 404).
 Local preview: launch config `chewi` in `C:\Fable 5.1\.claude\launch.json` (python http.server on 8732 serving this folder). A server on 8732 was still running at handoff (PID may differ; verify with `netstat -ano | findstr 8732`, and check it serves this tree before trusting any capture).
 

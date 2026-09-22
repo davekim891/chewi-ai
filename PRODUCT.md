@@ -24,8 +24,8 @@ The page is a pre-launch placeholder for chewi.ai (domain not yet purchased as o
 
 ## Capabilities and Constraints
 
-- Coming-soon surface: wordmark, tagline, "Coming soon", one contact action, an explanation of what Chewi compiles, one real demo clip, the approved bicycle render as the hero with live tags, and two live hologram scenes (hand, hand and cup) built on the page's own demo rigs.
-- Confirmed copy from GO: "CHEWI AI", "The intelligence layer between AI and the 3D world.", "Coming Soon", "Curious? Click Here" (contact intent; final label may be reworded but it must stay one contact action).
+- Coming-soon surface: wordmark, tagline, hero eyebrow (GO's 2026-09-22 line "IN DEVELOPMENT · SEEKING DESIGN PARTNERS"), one contact action, an explanation of what Chewi compiles, one real demo clip, the approved bicycle render as the hero with live tags, and two live hologram scenes (hand, hand and cup) built on the page's own demo rigs.
+- Confirmed copy from GO: "CHEWI AI", "The intelligence layer between AI and the 3D world.", "IN DEVELOPMENT · SEEKING DESIGN PARTNERS" (hero eyebrow, 2026-09-22), "Curious? Click Here" (contact intent; final label may be reworded but it must stay one contact action).
 - Contact form delivered by FormSubmit to GO's inbox (2026-09-18, replacing Web3Forms because Web3Forms requires an account). The address is never shown on the page.
 - No fabricated customers, quotes, metrics or partner logos. The one-sheet's "We're looking for design partners" is the only call to collaboration.
 - Terminology used by the team: C1 (skeleton / pivots), C2 (compiled action surfaces / contact patches), semantic correspondence, action surfaces, affordances.
